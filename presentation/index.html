@@ -1,0 +1,1371 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>系統與網路安全動畫課</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+/* Layout: 16:9 舞台（1280×720 固定座標、等比縮放）+ 下方控制列；舞台是影片畫面，固定一套配色。 */
+:root {
+  /* 頁面外框（隨系統深淺色） */
+  --page: #eef1f6; --page-fg: #1f2a44; --chrome: #ffffff; --chrome-line: #d5dbe7; --chrome-mute: #5d6a85; --chrome-accent: #2b3a67;
+  /* 舞台（影片畫面） */
+  --ink: #1f2a44; --paper: #fffdf7; --sky: #e6f3ff; --sun: #ffd54a; --navy: #2b3a67; --mint: #2ec4a0; --coral: #ff6b57; --leaf: #19b36b; --lime: #2ee59d; --mute: #66708a; --blue: #4472c4;
+  --f-display: "Chiron GoRound TC", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "WenQuanYi Zen Hei", sans-serif;
+  --f-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "WenQuanYi Zen Hei", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --page: #12161f; --page-fg: #e7ebf3; --chrome: #1b2130; --chrome-line: #2d3548; --chrome-mute: #9aa6bf; --chrome-accent: #ffd54a; color-scheme: dark } }
+:root[data-theme="dark"] { --page: #12161f; --page-fg: #e7ebf3; --chrome: #1b2130; --chrome-line: #2d3548; --chrome-mute: #9aa6bf; --chrome-accent: #ffd54a; color-scheme: dark }
+html, body { height: 100%; }
+body { background: var(--page); color: var(--page-fg); font-family: var(--f-body); margin: 0; }
+.app { max-width: 1280px; margin: 0 auto; padding-block: 12px; padding-inline: 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; }
+.viewport { position: relative; width: 100%; aspect-ratio: 16 / 9; max-width: 100%; overflow: hidden; border-radius: 14px; background: #0b0f18; box-shadow: 0 8px 30px rgba(0,0,0,.18); }
+.viewport:fullscreen { border-radius: 0; background: #000; display: flex; align-items: center; justify-content: center; }
+
+/* ===== 舞台 ===== */
+#stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden; font-family: var(--f-body); color: var(--ink);
+  background: linear-gradient(160deg, #fff6dc 0%, #eaf6ff 55%, #e0f7ef 100%); }
+#bgdeco { position: absolute; inset: 0; pointer-events: none; }
+#bgdeco i { position: absolute; border-radius: 50%; border: 3px solid rgba(31,42,68,.07); }
+.topbar { position: absolute; left: 16px; right: 16px; top: 12px; height: 44px; display: flex; align-items: center; gap: 12px; z-index: 5; }
+.brand { font-family: var(--f-display); font-weight: 900; font-size: 17px; background: var(--ink); color: #fff; padding: 8px 16px; border-radius: 999px; letter-spacing: .02em; white-space: nowrap; }
+.brand b { color: var(--sun); }
+.secs { margin-left: auto; display: flex; gap: 6px; }
+.secs span { font-family: var(--f-display); font-weight: 700; font-size: 15px; padding: 6px 13px; border-radius: 999px; background: rgba(255,255,255,.75); border: 2px solid rgba(31,42,68,.18); color: var(--mute); }
+.secs span.on { background: var(--sun); border-color: var(--ink); color: var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+.counter { font-family: var(--f-display); font-weight: 700; font-size: 15px; color: var(--mute); font-variant-numeric: tabular-nums; }
+
+/* 左側控制措施地圖、右側筆記 */
+.minimap { position: absolute; left: 16px; top: 76px; width: 196px; z-index: 4; display: flex; flex-direction: column; gap: 7px; }
+.minimap h4 { margin: 0 0 2px; font-family: var(--f-display); font-size: 14px; color: var(--mute); letter-spacing: .08em; }
+.mm { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.7); border: 2px solid rgba(31,42,68,.15); border-radius: 12px; padding: 5px 9px; font-size: 14px; font-weight: 700; color: var(--mute); transition: none; }
+.mm b { font-family: var(--f-display); min-width: 40px; font-size: 15px; }
+.mm.on { background: #fff; border-color: var(--ink); color: var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+.mm.on b { color: var(--coral); }
+.note { position: absolute; left: 1068px; top: 84px; width: 190px; min-height: 150px; z-index: 4; background: #fff3a8; border: 2px solid var(--ink); border-radius: 4px 18px 4px 4px; box-shadow: 4px 5px 0 rgba(31,42,68,.25); padding: 26px 14px 14px; box-sizing: border-box; transform: rotate(2deg); }
+.note::before { content: ""; position: absolute; left: 62px; top: -12px; width: 66px; height: 22px; background: rgba(46,196,160,.55); border-radius: 3px; transform: rotate(-3deg); }
+.note h5 { margin: 0 0 6px; font-family: var(--f-display); font-size: 14px; color: #a0661a; letter-spacing: .06em; }
+.note p { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: 19px; line-height: 1.45; white-space: pre-line; }
+
+/* 場景與白板 */
+.scene { position: absolute; inset: 0; display: none; z-index: 2; }
+.board { position: absolute; left: 232px; top: 70px; width: 816px; height: 528px; box-sizing: border-box; padding: 18px 24px; background: var(--paper); border: 3px solid var(--ink); border-radius: 22px; box-shadow: 7px 7px 0 var(--ink); overflow: hidden; display: flex; flex-direction: column; gap: 12px; }
+.bh { display: flex; align-items: center; gap: 12px; flex: none; }
+.bh .cno, .cno { font-family: var(--f-display); font-weight: 900; font-size: 24px; background: var(--sun); border: 3px solid var(--ink); border-radius: 12px; padding: 1px 10px; box-shadow: 3px 3px 0 var(--ink); }
+.bh h2 { margin: 0; font-family: var(--f-display); font-weight: 900; font-size: 32px; letter-spacing: .02em; }
+.bh .en { font-size: 15px; color: var(--mute); font-weight: 500; margin-top: 8px; }
+.bh .tag { margin-left: auto; font-family: var(--f-display); font-weight: 700; font-size: 14px; padding: 4px 12px; border-radius: 999px; background: var(--sky); border: 2px solid var(--ink); }
+.new { display: inline-block; font-family: var(--f-display); font-weight: 900; font-size: 15px; color: #fff; background: var(--coral); border: 2px solid var(--ink); border-radius: 8px; padding: 1px 8px; }
+.stamp { position: absolute; z-index: 6; font-family: var(--f-display); font-weight: 900; color: var(--coral); border: 5px solid var(--coral); border-radius: 14px; padding: 6px 16px; font-size: 30px; background: rgba(255,255,255,.88); letter-spacing: .04em; white-space: nowrap; }
+.stamp.green { color: var(--leaf); border-color: var(--leaf); }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 16px; padding: 6px 12px; border-radius: 999px; background: #fff; border: 2px solid var(--ink); }
+.chip.y { background: #fff3c4; } .chip.m { background: #d6f6ec; } .chip.b { background: #dfeaff; } .chip.c { background: #ffe1dc; }
+.lbl { font-family: var(--f-display); font-weight: 900; font-size: 17px; color: var(--navy); letter-spacing: .04em; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.lbl::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--coral); }
+.row { display: flex; gap: 14px; }
+.col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.chk { display: flex; gap: 10px; align-items: flex-start; background: #fff; border: 2px solid var(--ink); border-radius: 14px; padding: 9px 12px; font-size: 17px; line-height: 1.4; }
+.chk i { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--mint); border: 2px solid var(--ink); color: #fff; font-style: normal; font-weight: 900; display: grid; place-items: center; font-size: 15px; font-family: var(--f-display); }
+.chk b { display: block; font-size: 18px; }
+.chk small { color: var(--mute); font-size: 14.5px; }
+.bar { border: 3px solid var(--ink); border-radius: 14px; padding: 10px 16px; font-family: var(--f-display); font-weight: 700; font-size: 19px; background: #fff3c4; display: flex; align-items: center; gap: 12px; }
+.bar.red { background: #ffe1dc; } .bar.green { background: #d6f6ec; } .bar.blue { background: #dfeaff; }
+.hl { filter: drop-shadow(0 0 calc(3px + 7px * var(--pulse, 0)) rgba(255,160,0,.95)) drop-shadow(0 0 2px rgba(255,160,0,.9)); }
+.dim { opacity: .35; }
+svg text { font-family: var(--f-display); font-weight: 700; }
+svg [data-at] { transform-box: fill-box; transform-origin: center; }
+
+/* 章節分隔頁 */
+.board.divider { background: radial-gradient(circle at 50% 70%, #34477d 0%, #1f2a44 70%); color: #fff; align-items: center; justify-content: center; text-align: center; }
+.divider .course { font-family: var(--f-display); font-weight: 900; font-size: 30px; color: var(--sun); letter-spacing: .2em; }
+.divider h2 { margin: 0; font-family: var(--f-display); font-weight: 900; font-size: 56px; letter-spacing: .06em; }
+.divider p { margin: 0; font-size: 21px; color: #cfd8ee; }
+
+/* 字幕 */
+.sub { position: absolute; left: 250px; width: 780px; bottom: 12px; min-height: 86px; box-sizing: border-box; z-index: 8; background: rgba(255,255,255,.95); border: 3px solid var(--ink); border-radius: 18px; padding: 12px 18px 12px 18px; display: flex; align-items: center; gap: 12px; box-shadow: 4px 4px 0 rgba(31,42,68,.35); }
+.sub .who { flex: none; font-family: var(--f-display); font-weight: 900; font-size: 16px; color: #fff; padding: 5px 10px; border-radius: 10px; }
+.sub .who.A { background: var(--navy); } .sub .who.R { background: var(--mint); }
+.sub .txt { flex: 1; min-width: 0; font-family: var(--f-display); font-weight: 700; font-size: 22px; line-height: 1.36; }
+.sub.hide { visibility: hidden; }
+
+/* 角色 */
+.char { position: absolute; bottom: 0; width: 240px; height: 340px; z-index: 7; }
+.char svg { width: 100%; height: 100%; overflow: visible; }
+#cA { left: 4px; } #cR { left: 1036px; }
+.char g { transform-box: view-box; }
+.emo { position: absolute; width: 64px; height: 64px; z-index: 9; pointer-events: none; }
+#emoA { left: 168px; top: 372px; } #emoR { left: 1046px; top: 372px; }
+.tagname { position: absolute; bottom: 4px; z-index: 9; font-family: var(--f-display); font-weight: 900; font-size: 14px; padding: 3px 10px; border-radius: 999px; border: 2px solid var(--ink); background: #fff; }
+#tnA { left: 76px; } #tnR { left: 1104px; }
+
+/* 開始畫面 */
+.cover { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: rgba(20,27,44,.72); color: #fff; text-align: center; }
+.cover h1 { margin: 0; font-family: var(--f-display); font-weight: 900; font-size: 54px; letter-spacing: .04em; }
+.cover p { margin: 0; font-size: 22px; color: #dfe6f5; }
+.cover button { font-family: var(--f-display); font-weight: 900; font-size: 30px; padding: 16px 44px; border-radius: 999px; border: 4px solid #fff; background: var(--sun); color: var(--ink); cursor: pointer; box-shadow: 6px 6px 0 rgba(0,0,0,.35); }
+.cover button:focus-visible { outline: 4px solid #fff; outline-offset: 4px; }
+
+/* ===== 控制列（頁面外框） ===== */
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; background: var(--chrome); border: 1px solid var(--chrome-line); border-radius: 12px; padding: 10px 12px; }
+.controls button, .controls select { font: inherit; font-size: 14px; color: var(--page-fg); background: transparent; border: 1px solid var(--chrome-line); border-radius: 8px; padding: 6px 10px; cursor: pointer; min-height: 34px; }
+.controls button:hover { border-color: var(--chrome-accent); }
+.controls button:focus-visible, .controls select:focus-visible, .track:focus-visible { outline: 2px solid var(--chrome-accent); outline-offset: 2px; }
+.controls #bPlay { font-weight: 700; min-width: 76px; }
+.controls .time { font-variant-numeric: tabular-nums; font-size: 14px; color: var(--chrome-mute); }
+.controls select { max-width: 100%; min-width: 0; }
+.track { position: relative; flex: 1 1 100%; order: -1; height: 22px; cursor: pointer; }
+.track .rail { position: absolute; left: 0; right: 0; top: 8px; height: 6px; border-radius: 3px; display: flex; overflow: hidden; background: var(--chrome-line); }
+.track .rail span { height: 100%; opacity: .55; }
+.track .fill { position: absolute; left: 0; top: 8px; height: 6px; border-radius: 3px; background: var(--chrome-accent); }
+.track .knob { position: absolute; top: 3px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: var(--chrome-accent); border: 2px solid var(--chrome); }
+.track .tick { position: absolute; top: 6px; width: 2px; height: 10px; background: var(--chrome); }
+.controls .spacer { flex: 1; }
+.help { font-size: 13px; color: var(--chrome-mute); margin: 0; }
+@media (max-width: 640px) { .help { display: none; } .controls select { flex: 1 1 100%; } }
+@media (prefers-reduced-motion: reduce) { #bgdeco { display: none; } }
+
+/* 錄影模式 */
+body.render .app { padding: 0; max-width: none; }
+body.render .viewport { width: 1280px; height: 720px; border-radius: 0; box-shadow: none; aspect-ratio: auto; }
+body.render .controls, body.render .help, body.render .cover { display: none !important; }
+</style>
+
+<div class="app">
+<div class="viewport" id="viewport">
+<div id="stage">
+  <div id="bgdeco"></div>
+  <div class="topbar">
+    <div class="brand">ISO 27001:2022 ｜ 運作流程 <b>系統與網路安全</b></div>
+    <span class="counter" id="counter">01 / 22</span>
+    <div class="secs" id="secs"><span>開場</span><span>作業重點</span><span>查核重點</span><span>常見缺失</span><span>總結</span></div>
+  </div>
+
+  <div class="minimap" id="minimap">
+    <h4>控制措施地圖</h4>
+    <div class="mm" data-c="8.9"><b>8.9</b>組態管理</div>
+    <div class="mm" data-c="8.20"><b>8.20</b>網路安全</div>
+    <div class="mm" data-c="8.22"><b>8.22</b>網路之區隔</div>
+    <div class="mm" data-c="8.21"><b>8.21</b>網路服務之安全</div>
+    <div class="mm" data-c="8.23"><b>8.23</b>網頁過濾</div>
+    <div class="mm" data-c="6.7"><b>6.7</b>遠端工作</div>
+  </div>
+  <div class="note" id="note"><h5>阿拉蕾筆記</h5><p id="noteText"></p></div>
+
+  <!-- ============ s01 開場 ============ -->
+  <section class="scene" data-id="s01" data-ctl="all" data-note="今天三道菜：&#10;作業→稽核→缺失">
+    <div class="board" style="align-items:center;text-align:center;justify-content:center;gap:16px">
+      <div class="chip b" data-at="-1" data-fx="up">ISO/IEC 27001:2022 附錄 A ・ 控制屬性：運作流程（Operational capabilities）</div>
+      <div style="font-family:var(--f-display);font-weight:900;font-size:64px;letter-spacing:.06em;line-height:1.1" data-at="-1" data-fx="pop" data-d="0.3">系統與網路安全</div>
+      <div style="font-family:var(--f-display);font-weight:700;font-size:22px;color:var(--mute)" data-at="-1" data-fx="up" data-d="0.6">#System_and_network_security</div>
+      <div class="row" style="gap:16px">
+        <div class="chk" style="background:#e6ecfa" data-at="0" data-fx="left" data-p="0.25"><i style="background:var(--navy)">A</i><div style="text-align:left"><b>Allan Lo 講師</b><small>ISMS / PIMS 輔導顧問・驗證公司稽核員</small></div></div>
+        <div class="chk" style="background:#dcf7ef" data-at="1" data-fx="right" data-p="0.1"><i>R</i><div style="text-align:left"><b>助教 阿拉蕾</b><small>負責發問、吐槽、做筆記</small></div></div>
+      </div>
+      <div class="row" style="gap:16px;margin-top:6px">
+        <div class="dish" data-at="4" data-fx="pop" data-p="0.12"><i>1</i><b>ISMS 作業重點</b><span>該做什麼、留什麼紀錄</span></div>
+        <div class="dish" data-at="4" data-fx="pop" data-p="0.3"><i>2</i><b>稽核查核重點</b><span>看文件、查紀錄、看現場</span></div>
+        <div class="dish" data-at="4" data-fx="pop" data-p="0.48"><i>3</i><b>常見缺失</b><span>十大地雷與矯正</span></div>
+      </div>
+    </div>
+  </section>
+  <style>
+    .dish { width: 220px; background: #fff; border: 3px solid var(--ink); border-radius: 18px; padding: 12px; box-shadow: 4px 4px 0 var(--ink); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .dish i { font-style: normal; font-family: var(--f-display); font-weight: 900; font-size: 22px; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--sun); border: 3px solid var(--ink); }
+    .dish b { font-family: var(--f-display); font-size: 22px; }
+    .dish span { font-size: 15px; color: var(--mute); }
+  </style>
+
+  <!-- ============ s02 全景圖 ============ -->
+  <section class="scene" data-id="s02" data-ctl="all" data-note="傘 8.9｜牆 8.20&#10;隔間 8.22&#10;濾網 8.23&#10;專線 8.21&#10;外出 6.7">
+    <div class="board" style="padding:12px 20px">
+      <div class="bh"><h2 style="font-size:26px">全景圖：系統與網路安全的「運作流程」</h2></div>
+      <svg viewBox="0 0 768 440" style="width:768px;height:440px;flex:none">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#4472c4"/></marker>
+        </defs>
+        <!-- 8.9 大傘 -->
+        <g data-at="0" data-fx="down" data-p="0.05" data-hl="0">
+          <path d="M30 52 Q384 -26 738 52 Q695 36 652 52 Q609 36 566 52 Q523 36 480 52 Q437 36 394 52 Q351 36 308 52 Q265 36 222 52 Q179 36 136 52 Q93 36 50 52 Z" fill="#ffd54a" stroke="#1f2a44" stroke-width="3"/>
+          <text x="384" y="40" text-anchor="middle" font-size="21" fill="#1f2a44">8.9 組態管理（設定要有基準、有紀錄）</text>
+        </g>
+        <!-- 系統安全 → 網路安全 -->
+        <g data-at="1" data-fx="left" data-p="0.0">
+          <path d="M30 62 H392 L412 80 L392 98 H30 Z" fill="#2ee59d" stroke="#1f2a44" stroke-width="2"/>
+          <text x="210" y="88" text-anchor="middle" font-size="22" font-weight="900" fill="#1f2a44">系統安全</text>
+          <path d="M398 62 H738 V98 H398 L418 80 Z" fill="#19b36b" stroke="#1f2a44" stroke-width="2"/>
+          <text x="580" y="88" text-anchor="middle" font-size="22" font-weight="900" fill="#1f2a44">網路安全</text>
+        </g>
+        <!-- 組織內 -->
+        <g data-at="1" data-fx="pop" data-p="0.15">
+          <circle cx="200" cy="278" r="150" fill="#fffbe0" stroke="#1f2a44" stroke-width="3"/>
+          <g transform="translate(108 150)"><rect x="0" y="6" width="16" height="26" fill="#1f2a44"/><rect x="18" y="0" width="16" height="32" fill="#1f2a44"/><rect x="36" y="12" width="12" height="20" fill="#1f2a44"/><rect x="4" y="12" width="4" height="4" fill="#fffbe0"/><rect x="22" y="6" width="4" height="4" fill="#fffbe0"/><rect x="22" y="14" width="4" height="4" fill="#fffbe0"/></g>
+          <text x="164" y="176" font-size="20" fill="#1f2a44">組織內</text>
+          <circle cx="182" cy="222" r="30" fill="#c9d8f2"/>
+          <g transform="translate(164 207)"><rect x="0" y="0" width="30" height="20" rx="2" fill="#fff" stroke="#1f2a44" stroke-width="2.5"/><path d="M10 26 h10 M15 20 v6" stroke="#1f2a44" stroke-width="2.5"/></g>
+          <circle cx="96" cy="292" r="30" fill="#c9d8f2"/>
+          <g transform="translate(80 274)" fill="#fff" stroke="#1f2a44" stroke-width="2.5"><rect x="0" y="0" width="32" height="10" rx="2"/><rect x="0" y="12" width="32" height="10" rx="2"/><rect x="0" y="24" width="32" height="10" rx="2"/></g>
+          <circle cx="166" cy="370" r="30" fill="#c9d8f2"/>
+          <g transform="translate(150 352)"><rect x="0" y="8" width="32" height="28" fill="#1f2a44"/><rect x="6" y="14" width="5" height="5" fill="#fff"/><rect x="14" y="14" width="5" height="5" fill="#fff"/><rect x="22" y="14" width="5" height="5" fill="#fff"/><rect x="6" y="23" width="5" height="5" fill="#fff"/><rect x="22" y="23" width="5" height="5" fill="#fff"/><rect x="13" y="28" width="7" height="8" fill="#fff"/></g>
+        </g>
+        <!-- 8.20 防火牆 -->
+        <g data-at="1" data-fx="pop" data-p="0.45" data-hl="1">
+          <g transform="translate(272 262)">
+            <rect x="0" y="0" width="56" height="40" fill="#fff" stroke="#1f2a44" stroke-width="2.5"/>
+            <path d="M0 13 H56 M0 26 H56 M14 0 V13 M42 0 V13 M28 13 V26 M14 26 V40 M42 26 V40" stroke="#1f2a44" stroke-width="2"/>
+            <path d="M28 -6 L42 0 V14 Q42 26 28 32 Q14 26 14 14 V0 Z" fill="#c9d8f2" stroke="#1f2a44" stroke-width="2.5"/>
+          </g>
+          <text x="312" y="328" text-anchor="middle" font-size="18" fill="#1f2a44">8.20</text>
+          <text x="312" y="349" text-anchor="middle" font-size="18" fill="#1f2a44">網路安全</text>
+        </g>
+        <!-- 8.22 區隔箭頭 -->
+        <g data-hl="2">
+          <path d="M270 270 L210 236" stroke="#4472c4" stroke-width="6" marker-end="url(#ah)" fill="none" data-at="2" data-fx="draw" data-p="0.05"/>
+          <path d="M268 286 L130 292" stroke="#4472c4" stroke-width="6" marker-end="url(#ah)" fill="none" data-at="2" data-fx="draw" data-p="0.2"/>
+          <path d="M276 302 L194 356" stroke="#4472c4" stroke-width="6" marker-end="url(#ah)" fill="none" data-at="2" data-fx="draw" data-p="0.35"/>
+          <text x="186" y="276" text-anchor="middle" font-size="16" fill="#1f2a44" data-at="2" data-fx="pop" data-p="0.5">8.22 網路之區隔</text>
+        </g>
+        <!-- 組織外 -->
+        <g data-at="3" data-fx="pop" data-p="0.05" data-hl="3">
+          <circle cx="602" cy="282" r="138" fill="#fffbe0" stroke="#1f2a44" stroke-width="3"/>
+          <g transform="translate(530 160)"><path d="M0 18 Q20 -6 40 18 Z" fill="#1f2a44"/><path d="M20 18 V40 M8 40 H32" stroke="#1f2a44" stroke-width="3"/></g>
+          <text x="580" y="186" font-size="20" fill="#1f2a44">組織外</text>
+        </g>
+        <g data-at="4" data-fx="pop" data-p="0.55" data-hl="4">
+          <circle cx="548" cy="250" r="30" fill="#c9d8f2"/>
+          <g transform="translate(530 232)"><circle cx="18" cy="8" r="7" fill="#fff" stroke="#1f2a44" stroke-width="2.5"/><rect x="2" y="20" width="20" height="13" rx="2" fill="#fff" stroke="#1f2a44" stroke-width="2.5"/><path d="M0 36 H36" stroke="#1f2a44" stroke-width="3"/></g>
+          <text x="588" y="257" font-size="19" fill="#1f2a44">6.7 遠端工作</text>
+        </g>
+        <g data-at="4" data-fx="pop" data-p="0.25" data-hl="4">
+          <circle cx="548" cy="330" r="30" fill="#c9d8f2"/>
+          <g transform="translate(530 316)"><rect x="0" y="0" width="36" height="28" rx="3" fill="#fff" stroke="#1f2a44" stroke-width="2.5"/><path d="M0 8 H36 M6 14 H18 M6 20 H14 M22 14 h8 v8 h-8 z" stroke="#1f2a44" stroke-width="2"/></g>
+          <text x="588" y="337" font-size="19" fill="#1f2a44">外部網頁</text>
+        </g>
+        <!-- 8.23 雙向箭頭 -->
+        <g data-at="4" data-fx="pop" data-p="0.1" data-hl="4">
+          <path d="M462 276 H372" stroke="#1565c0" stroke-width="14"/><path d="M376 262 L348 276 L376 290 Z" fill="#1565c0"/>
+          <path d="M346 300 H436" stroke="#29b6f6" stroke-width="14"/><path d="M432 286 L460 300 L432 314 Z" fill="#29b6f6"/>
+          <text x="404" y="336" text-anchor="middle" font-size="18" fill="#1f2a44">8.23</text>
+          <text x="404" y="357" text-anchor="middle" font-size="18" fill="#1f2a44">網頁過濾</text>
+        </g>
+        <!-- 8.21 網路服務 -->
+        <g data-at="5" data-fx="pop" data-p="0.1" data-hl="5">
+          <circle cx="404" cy="178" r="24" fill="#fff" stroke="#1f2a44" stroke-width="3"/>
+          <path d="M380 178 H428 M404 154 Q390 178 404 202 M404 154 Q418 178 404 202" stroke="#1f2a44" stroke-width="2" fill="none"/>
+          <path d="M392 200 L376 222 M416 200 L432 222" stroke="#1f2a44" stroke-width="2.5"/>
+          <rect x="358" y="222" width="34" height="22" rx="3" fill="#fff" stroke="#1f2a44" stroke-width="2.5"/>
+          <rect x="416" y="222" width="34" height="22" rx="3" fill="#fff" stroke="#1f2a44" stroke-width="2.5"/>
+          <text x="404" y="128" text-anchor="middle" font-size="18" fill="#1f2a44">8.21</text>
+          <text x="404" y="148" text-anchor="middle" font-size="16" fill="#1f2a44">網路服務之安全</text>
+        </g>
+        <!-- 比喻貼紙 -->
+        <g font-size="17" fill="#1f2a44">
+          <g data-at="6" data-fx="pop" data-p="0.12"><circle cx="72" cy="40" r="20" fill="#ff6b57" stroke="#1f2a44" stroke-width="2"/><text x="72" y="46" text-anchor="middle" fill="#fff">傘</text></g>
+          <g data-at="6" data-fx="pop" data-p="0.22"><circle cx="346" cy="248" r="20" fill="#ff6b57" stroke="#1f2a44" stroke-width="2"/><text x="346" y="254" text-anchor="middle" fill="#fff">牆</text></g>
+          <g data-at="6" data-fx="pop" data-p="0.36"><rect x="54" y="226" width="54" height="30" rx="15" fill="#ff6b57" stroke="#1f2a44" stroke-width="2"/><text x="81" y="247" text-anchor="middle" fill="#fff">隔間</text></g>
+          <g data-at="6" data-fx="pop" data-p="0.58"><rect x="436" y="318" width="54" height="30" rx="15" fill="#ff6b57" stroke="#1f2a44" stroke-width="2"/><text x="463" y="339" text-anchor="middle" fill="#fff">濾網</text></g>
+          <g data-at="6" data-fx="pop" data-p="0.8"><rect x="452" y="160" width="54" height="30" rx="15" fill="#ff6b57" stroke="#1f2a44" stroke-width="2"/><text x="479" y="181" text-anchor="middle" fill="#fff">專線</text></g>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ s03 控制措施速覽 ============ -->
+  <section class="scene" data-id="s03" data-ctl="all" data-note="2022 新增：&#10;8.9 組態管理&#10;8.23 網頁過濾">
+    <div class="board">
+      <div class="bh"><h2>六個控制措施，排排站</h2><span class="tag">ISO/IEC 27001:2022 附錄 A</span></div>
+      <div class="cards">
+        <div class="cc" data-at="0" data-fx="pop" data-p="0.04" data-hl="1"><div class="cc-top"><span class="cno">8.9</span><span class="new" data-at="0" data-fx="stamp" data-p="0.62">2022 新增</span></div><b>組態管理</b><em>Configuration management</em><p>硬體、軟體、服務與網路的安全組態，應建立、文件化、實施、監控與審查</p></div>
+        <div class="cc" data-at="0" data-fx="pop" data-p="0.1"><div class="cc-top"><span class="cno">8.20</span><small data-at="2" data-fx="fade" data-p="0.15">舊版 A.13.1.1</small></div><b>網路安全</b><em>Networks security</em><p>保護網路與網路設備，以及連網的系統與應用程式</p></div>
+        <div class="cc" data-at="0" data-fx="pop" data-p="0.16"><div class="cc-top"><span class="cno">8.21</span><small data-at="2" data-fx="fade" data-p="0.2">舊版 A.13.1.2</small></div><b>網路服務之安全</b><em>Security of network services</em><p>識別、實作並監控網路服務的安全機制、服務等級與要求</p></div>
+        <div class="cc" data-at="0" data-fx="pop" data-p="0.22"><div class="cc-top"><span class="cno">8.22</span><small data-at="2" data-fx="fade" data-p="0.25">舊版 A.13.1.3</small></div><b>網路之區隔</b><em>Segregation of networks</em><p>資訊服務、使用者及資訊系統群組，應於網路中區隔</p></div>
+        <div class="cc" data-at="0" data-fx="pop" data-p="0.28" data-hl="1"><div class="cc-top"><span class="cno">8.23</span><span class="new" data-at="0" data-fx="stamp" data-p="0.72">2022 新增</span></div><b>網頁過濾</b><em>Web filtering</em><p>管理對外部網站的存取，降低暴露於惡意內容</p></div>
+        <div class="cc" data-at="0" data-fx="pop" data-p="0.34"><div class="cc-top"><span class="cno">6.7</span><small data-at="2" data-fx="fade" data-p="0.6">舊版 A.6.2.2</small></div><b>遠端工作</b><em>Remote working</em><p>在組織場所外工作時，保護所存取、處理或儲存的資訊</p></div>
+      </div>
+    </div>
+  </section>
+  <style>
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .cc { background: #fff; border: 3px solid var(--ink); border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; gap: 3px; min-height: 186px; box-sizing: border-box; box-shadow: 4px 4px 0 rgba(31,42,68,.18); }
+    .cc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .cc-top small { font-size: 13px; color: var(--mute); font-weight: 700; background: var(--sky); padding: 2px 8px; border-radius: 6px; }
+    .cc b { font-family: var(--f-display); font-size: 23px; }
+    .cc em { font-style: normal; font-size: 13.5px; color: var(--mute); }
+    .cc p { margin: 4px 0 0; font-size: 15.5px; line-height: 1.45; }
+  </style>
+
+  <!-- ============ s04 第一道菜 ============ -->
+  <section class="scene" data-id="s04" data-ctl="all" data-note="作業重點：&#10;該做什麼＋留下紀錄">
+    <div class="board divider">
+      <div class="course" data-at="-1" data-fx="down" data-d="0.1">第 一 道 菜</div>
+      <svg viewBox="0 0 400 230" style="width:400px;height:230px">
+        <ellipse cx="200" cy="200" rx="180" ry="24" fill="#fff" stroke="#ffd54a" stroke-width="4"/>
+        <text x="200" y="168" text-anchor="middle" font-size="44" font-weight="900" fill="#ffd54a">ISMS 作業重點</text>
+        <g data-at="0" data-fx="lift" data-p="0.15">
+          <path d="M44 194 Q44 60 200 56 Q356 60 356 194 Z" fill="#cfd8ee" stroke="#fff" stroke-width="4"/>
+          <path d="M90 150 Q110 92 170 80" stroke="#fff" stroke-width="8" fill="none" opacity=".7" stroke-linecap="round"/>
+          <circle cx="200" cy="48" r="14" fill="#cfd8ee" stroke="#fff" stroke-width="4"/>
+        </g>
+      </svg>
+      <p data-at="1" data-fx="up" data-p="0.2">該做什麼？要留下哪些紀錄？</p>
+    </div>
+  </section>
+
+  <!-- ============ s05 8.9 組態管理 ============ -->
+  <section class="scene" data-id="s05" data-ctl="8.9" data-note="先有基準，&#10;再管偏離；&#10;例外要核准！">
+    <div class="board">
+      <div class="bh"><span class="cno">8.9</span><h2>組態管理</h2><span class="en">Configuration management</span><span class="new" style="margin-left:auto">2022 新增</span></div>
+      <div class="row" style="flex:1;min-height:0">
+        <svg viewBox="0 0 360 400" style="width:350px;height:400px;flex:none">
+          <defs><marker id="ah2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#1f2a44"/></marker></defs>
+          <g data-at="3" data-fx="fade" data-p="0.05">
+            <circle cx="180" cy="200" r="128" fill="none" stroke="#1f2a44" stroke-width="3" stroke-dasharray="8 10"/>
+          </g>
+          <g data-at="0" data-fx="pop" data-p="0.1"><text x="180" y="194" text-anchor="middle" font-size="24" font-weight="900" fill="#1f2a44">組態</text><text x="180" y="224" text-anchor="middle" font-size="24" font-weight="900" fill="#1f2a44">生命週期</text></g>
+          <g data-at="0" data-fx="pop" data-p="0.25" data-hl="0,1"><circle cx="180" cy="72" r="50" fill="#ffd54a" stroke="#1f2a44" stroke-width="3"/><text x="180" y="68" text-anchor="middle" font-size="19" fill="#1f2a44">① 建立</text><text x="180" y="92" text-anchor="middle" font-size="19" fill="#1f2a44">安全基準</text></g>
+          <g data-at="3" data-fx="pop" data-p="0.12" data-hl="3"><circle cx="302" cy="160" r="50" fill="#d6f6ec" stroke="#1f2a44" stroke-width="3"/><text x="302" y="156" text-anchor="middle" font-size="19" fill="#1f2a44">② 部署</text><text x="302" y="180" text-anchor="middle" font-size="19" fill="#1f2a44">套用</text></g>
+          <g data-at="3" data-fx="pop" data-p="0.25" data-hl="3"><circle cx="256" cy="304" r="50" fill="#dfeaff" stroke="#1f2a44" stroke-width="3"/><text x="256" y="300" text-anchor="middle" font-size="19" fill="#1f2a44">③ 監控</text><text x="256" y="324" text-anchor="middle" font-size="19" fill="#1f2a44">偏離</text></g>
+          <g data-at="3" data-fx="pop" data-p="0.45" data-hl="3"><circle cx="104" cy="304" r="50" fill="#ffe1dc" stroke="#1f2a44" stroke-width="3"/><text x="104" y="300" text-anchor="middle" font-size="19" fill="#1f2a44">④ 變更</text><text x="104" y="324" text-anchor="middle" font-size="19" fill="#1f2a44">管理</text></g>
+          <g data-at="3" data-fx="pop" data-p="0.65" data-hl="3"><circle cx="58" cy="160" r="50" fill="#fff3c4" stroke="#1f2a44" stroke-width="3"/><text x="58" y="156" text-anchor="middle" font-size="19" fill="#1f2a44">⑤ 定期</text><text x="58" y="180" text-anchor="middle" font-size="19" fill="#1f2a44">審查</text></g>
+        </svg>
+        <div class="col" style="flex:1">
+          <div data-at="0" data-fx="up" data-p="0.55"><div class="lbl">適用範圍</div><div class="row" style="gap:8px;flex-wrap:wrap"><span class="chip y">硬體</span><span class="chip y">軟體</span><span class="chip y">服務</span><span class="chip y">網路</span></div></div>
+          <div data-at="1" data-fx="up" data-p="0.05" data-hl="1"><div class="lbl">基準從哪來？</div><div class="row" style="gap:8px;flex-wrap:wrap"><span class="chip b">原廠強化指引</span><span class="chip b">CIS Benchmarks</span><span class="chip b">政府組態基準 GCB</span></div></div>
+          <div data-at="4" data-fx="up" data-p="0.05" style="position:relative" data-hl="4">
+            <div class="lbl">至少要留的紀錄</div>
+            <div class="col" style="gap:7px">
+              <div class="chk"><i>✓</i><div><b>組態基準文件</b><small>依設備類型（Windows、Linux、網通設備…）</small></div></div>
+              <div class="chk"><i>✓</i><div><b>組態紀錄 / CMDB</b><small>目前設定值、版本、負責人</small></div></div>
+              <div class="chk"><i>✓</i><div><b>偏離基準的例外核准</b><small>理由、補償措施、期限（連結 8.32 變更管理）</small></div></div>
+            </div>
+            <div class="stamp" style="right:6px;bottom:-6px;font-size:24px" data-at="5" data-fx="stamp" data-p="0.25">例外要核准！</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ s06 8.20 網路安全 ============ -->
+  <section class="scene" data-id="s06" data-ctl="8.20" data-note="架構圖畫不出來&#10;＝管不住網路">
+    <div class="board">
+      <div class="bh"><span class="cno">8.20</span><h2>網路安全</h2><span class="en">Networks security</span><span class="tag" data-at="0" data-fx="pop" data-p="0.4">保護：網路＋連網系統＋應用程式</span></div>
+      <div class="row" style="flex:1;min-height:0">
+        <div style="position:relative;width:330px;flex:none" data-at="1" data-fx="left" data-p="0.05" data-hl="1">
+          <div style="background:#fff;border:3px solid var(--ink);border-radius:16px;padding:10px 12px">
+            <div style="display:flex;justify-content:space-between;font-family:var(--f-display);font-weight:900;font-size:17px"><span>網路架構圖 v3.2</span><span style="color:var(--coral)">2026/09/01</span></div>
+            <svg viewBox="0 0 300 300" style="width:300px;height:300px">
+              <g stroke="#1f2a44" stroke-width="2.5" fill="#fff">
+                <path d="M120 40 q0 -22 26 -22 q12 -14 30 -4 q24 -4 26 18 q18 4 12 18 h-90 q-14 -2 -4 -10z" fill="#dfeaff"/>
+                <path d="M160 52 V84 M160 120 V146 M160 182 L70 228 M160 182 V228 M160 182 L250 228" fill="none"/>
+                <rect x="128" y="84" width="64" height="36" rx="6" fill="#ffe1dc"/>
+                <rect x="124" y="146" width="72" height="36" rx="6" fill="#d6f6ec"/>
+                <rect x="40" y="228" width="60" height="40" rx="6" fill="#fff3c4"/>
+                <rect x="130" y="228" width="60" height="40" rx="6" fill="#fff3c4"/>
+                <rect x="220" y="228" width="60" height="40" rx="6" fill="#fff3c4"/>
+              </g>
+              <g font-size="14" fill="#1f2a44" text-anchor="middle">
+                <text x="160" y="42">Internet</text><text x="160" y="107">防火牆</text><text x="160" y="169">核心交換器</text>
+                <text x="70" y="253">伺服器區</text><text x="160" y="253">使用者區</text><text x="250" y="253">管理區</text>
+              </g>
+            </svg>
+            <div style="font-size:13.5px;color:var(--mute)">版本・日期・核准人，與現場設備一致</div>
+          </div>
+          <div class="stamp" style="left:20px;top:150px;font-size:26px" data-at="2" data-fx="stamp" data-p="0.1">畫不出來＝管不住</div>
+        </div>
+        <div class="col" style="flex:1;gap:9px">
+          <div class="chk" data-at="1" data-fx="right" data-p="0.25" data-hl="1"><i>1</i><div><b>網路架構圖</b><small>正確、有版本、有日期，異動後即更新</small></div></div>
+          <div class="chk" data-at="3" data-fx="right" data-p="0.05" data-hl="3"><i>2</i><div><b>網路設備強化</b><small>改預設帳密、更新韌體、管理介面不對外開放</small></div></div>
+          <div class="chk" data-at="3" data-fx="right" data-p="0.45" data-hl="3"><i>3</i><div><b>防火牆規則管理</b><small>申請 → 核准 → 設定 → 定期審查（常見為每半年）</small></div></div>
+          <div class="chk" data-at="4" data-fx="right" data-p="0.1" data-hl="4"><i>4</i><div><b>日誌與監控</b><small>網路設備日誌集中保存，串接 8.15 日誌、8.16 監視活動</small></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ s07 8.22 網路之區隔 ============ -->
+  <section class="scene" data-id="s07" data-ctl="8.22" data-note="預設拒絕、&#10;最小必要">
+    <div class="board">
+      <div class="bh"><span class="cno">8.22</span><h2>網路之區隔</h2><span class="en">Segregation of networks</span></div>
+      <div class="row" style="flex:1;min-height:0">
+        <svg viewBox="0 0 470 410" style="width:460px;height:400px;flex:none">
+          <g data-at="0" data-fx="pop" data-p="0.2">
+            <path d="M190 46 q0 -26 30 -26 q14 -16 36 -4 q28 -4 30 20 q20 6 12 22 h-104 q-16 -2 -4 -12z" fill="#dfeaff" stroke="#1f2a44" stroke-width="2.5"/>
+            <text x="240" y="44" text-anchor="middle" font-size="16" fill="#1f2a44">Internet</text>
+            <path d="M240 60 V176" stroke="#1f2a44" stroke-width="3"/>
+            <g transform="translate(206 176)"><rect width="68" height="48" rx="8" fill="#ffe1dc" stroke="#1f2a44" stroke-width="3"/><text x="34" y="30" text-anchor="middle" font-size="16" fill="#1f2a44">防火牆</text></g>
+          </g>
+          <g stroke="#1f2a44" stroke-width="3" fill="none">
+            <path d="M206 200 H178 V112 H150" data-at="1" data-fx="draw" data-p="0.1"/>
+            <path d="M206 202 H150" data-at="1" data-fx="draw" data-p="0.5"/>
+            <path d="M206 204 H178 V292 H150" data-at="1" data-fx="draw" data-p="0.85"/>
+            <path d="M274 200 H302 V112 H310" data-at="1" data-fx="draw" data-p="0.25"/>
+            <path d="M274 202 H310" data-at="1" data-fx="draw" data-p="0.4"/>
+            <path d="M274 204 H302 V292 H310" data-at="1" data-fx="draw" data-p="0.65"/>
+          </g>
+          <g font-size="17" fill="#1f2a44" text-anchor="middle">
+            <g data-at="1" data-fx="pop" data-p="0.12"><rect x="20" y="86" width="130" height="52" rx="10" fill="#fff3c4" stroke="#1f2a44" stroke-width="3"/><text x="85" y="118">DMZ 對外服務</text></g>
+            <g data-at="1" data-fx="pop" data-p="0.25"><rect x="310" y="86" width="130" height="52" rx="10" fill="#d6f6ec" stroke="#1f2a44" stroke-width="3"/><text x="375" y="118">伺服器區</text></g>
+            <g data-at="1" data-fx="pop" data-p="0.4" data-hl="4,5"><rect x="310" y="176" width="130" height="52" rx="10" fill="#dfeaff" stroke="#1f2a44" stroke-width="3"/><text x="375" y="208">使用者區</text></g>
+            <g data-at="1" data-fx="pop" data-p="0.5"><rect x="20" y="176" width="130" height="52" rx="10" fill="#efe6ff" stroke="#1f2a44" stroke-width="3"/><text x="85" y="208">網管管理區</text></g>
+            <g data-at="1" data-fx="pop" data-p="0.68" data-hl="4,5"><rect x="310" y="266" width="130" height="52" rx="10" fill="#ffe1dc" stroke="#1f2a44" stroke-width="3"/><text x="375" y="298">訪客 Wi-Fi</text></g>
+            <g data-at="1" data-fx="pop" data-p="0.86"><rect x="20" y="266" width="130" height="52" rx="10" fill="#e3e7ee" stroke="#1f2a44" stroke-width="3"/><text x="85" y="298">OT 生產網路</text></g>
+          </g>
+          <g data-at="4" data-fx="pop" data-p="0.3">
+            <path d="M440 292 H462 V36 H306" stroke="#19b36b" stroke-width="4" stroke-dasharray="8 6" fill="none"/>
+            <text x="384" y="24" font-size="15" fill="#19b36b" text-anchor="middle">只能上網 ✓</text>
+          </g>
+          <g data-at="4" data-fx="pop" data-p="0.6">
+            <path d="M352 266 V230" stroke="#ff6b57" stroke-width="4" stroke-dasharray="6 5"/>
+            <g transform="translate(352 248)"><circle r="16" fill="#fff" stroke="#ff6b57" stroke-width="4"/><path d="M-7 -7 L7 7 M7 -7 L-7 7" stroke="#ff6b57" stroke-width="4"/></g>
+          </g>
+          <text x="240" y="370" text-anchor="middle" font-size="16" fill="#66708a" data-at="1" data-fx="fade" data-p="0.95">依資訊服務、使用者與系統分群（VLAN / ACL / 防火牆）</text>
+        </svg>
+        <div class="col" style="flex:1;gap:10px">
+          <div class="chk" style="background:#fff3c4" data-at="3" data-fx="right" data-p="0.05" data-hl="3"><i style="background:var(--coral)">1</i><div><b>預設拒絕</b><small>Deny by default，沒有允許的就不通</small></div></div>
+          <div class="chk" style="background:#fff3c4" data-at="3" data-fx="right" data-p="0.25" data-hl="3"><i style="background:var(--coral)">2</i><div><b>最小必要</b><small>區與區之間只開需要的服務與埠號</small></div></div>
+          <div class="chk" style="background:#fff3c4" data-at="3" data-fx="right" data-p="0.6" data-hl="3"><i style="background:var(--coral)">3</i><div><b>有依據</b><small>依資產重要性、資料等級與業務需求決定</small></div></div>
+          <div class="bar green" style="font-size:17px" data-at="5" data-fx="up" data-p="0.2">訪客 Wi-Fi：只能上網，碰不到內網</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ s08 8.21 網路服務之安全 ============ -->
+  <section class="scene" data-id="s08" data-ctl="8.21" data-note="合約寫安全，&#10;SLA 要追蹤">
+    <div class="board">
+      <div class="bh"><span class="cno">8.21</span><h2>網路服務之安全</h2><span class="en">Security of network services</span></div>
+      <div>
+        <div class="lbl" data-at="0" data-fx="fade" data-p="0.2">誰提供網路服務？</div>
+        <div class="row" style="gap:8px;flex-wrap:wrap">
+          <span class="chip b" data-at="0" data-fx="pop" data-p="0.3">內部 IT 部門</span>
+          <span class="chip b" data-at="0" data-fx="pop" data-p="0.55">電信 / ISP 專線</span>
+          <span class="chip b" data-at="0" data-fx="pop" data-p="0.62">雲端服務</span>
+          <span class="chip b" data-at="0" data-fx="pop" data-p="0.7">SD-WAN / MPLS</span>
+          <span class="chip b" data-at="0" data-fx="pop" data-p="0.78">DDoS 清洗 / CDN</span>
+          <span class="chip b" data-at="0" data-fx="pop" data-p="0.86">資安監控服務</span>
+        </div>
+      </div>
+      <div class="row" style="flex:1;min-height:0;align-items:stretch">
+        <div class="doc" data-at="1" data-fx="left" data-p="0.05" data-hl="1">
+          <div class="doc-h">合約 / SLA 應納入</div>
+          <ul>
+            <li><b>安全機制</b>：傳輸加密、存取控制、認證</li>
+            <li><b>防護能力</b>：DDoS 防護、異常流量偵測</li>
+            <li><b>服務等級</b>：可用率、修復時間</li>
+            <li><b>通報要求</b>：事故與異常的通報時限</li>
+            <li><b>管理權利</b>：服務報告、稽核或查核權</li>
+          </ul>
+        </div>
+        <div class="col" style="flex:1;position:relative">
+          <div class="bar red" data-at="2" data-fx="up" data-p="0.2">簽完收進抽屜 ✗</div>
+          <div class="lbl" style="margin-top:6px" data-at="3" data-fx="fade" data-p="0.1">定期追蹤</div>
+          <div class="chk" data-at="3" data-fx="right" data-p="0.15" data-hl="3"><i>1</i><div><b>看服務報告</b><small>每月 / 每季</small></div></div>
+          <div class="chk" data-at="3" data-fx="right" data-p="0.35" data-hl="3"><i>2</i><div><b>確認 SLA 達成</b><small>未達成→要求改善、依約處理</small></div></div>
+          <div class="chk" data-at="3" data-fx="right" data-p="0.55" data-hl="3"><i>3</i><div><b>供應者評核</b><small>串接 5.19～5.22 供應者管理</small></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <style>
+    .doc { width: 380px; flex: none; background: #fff; border: 3px solid var(--ink); border-radius: 6px 22px 6px 6px; padding: 14px 18px; box-sizing: border-box; box-shadow: 5px 5px 0 rgba(31,42,68,.18); }
+    .doc-h { font-family: var(--f-display); font-weight: 900; font-size: 22px; border-bottom: 3px dashed var(--ink); padding-bottom: 6px; margin-bottom: 8px; }
+    .doc ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 9px; font-size: 17px; line-height: 1.4; }
+  </style>
+
+  <!-- ============ s09 8.23 網頁過濾 ============ -->
+  <section class="scene" data-id="s09" data-ctl="8.23" data-note="規則跟著人走，&#10;被擋不要繞！">
+    <div class="board">
+      <div class="bh"><span class="cno">8.23</span><h2>網頁過濾</h2><span class="en">Web filtering</span><span class="new" style="margin-left:auto">2022 新增</span></div>
+      <div class="row" style="flex:1;min-height:0">
+        <div class="col" style="width:400px;flex:none">
+          <div class="browser" data-at="0" data-fx="left" data-p="0.2">
+            <div class="bb"><i></i><i></i><i></i><span>https://free-gift-claim.example</span></div>
+            <div class="bbody">
+              <svg viewBox="0 0 80 90" style="width:74px;height:84px"><path d="M40 4 L74 16 V44 Q74 72 40 86 Q6 72 6 44 V16 Z" fill="#ffe1dc" stroke="#1f2a44" stroke-width="4"/><circle cx="40" cy="44" r="17" fill="none" stroke="#ff6b57" stroke-width="6"/><path d="M28 32 L52 56" stroke="#ff6b57" stroke-width="6"/></svg>
+              <div><b style="font-family:var(--f-display);font-size:26px">此網站已被封鎖</b><div style="font-size:15px;color:var(--mute)">類別：釣魚網站｜依公司網頁過濾政策</div></div>
+            </div>
+          </div>
+          <div class="bar blue" style="font-size:16px;line-height:1.4" data-at="1" data-fx="up" data-p="0.7" data-hl="1"><span><b>例外申請流程</b><br>申請 → 主管核准 → 資安審視 → 設定期限</span></div>
+          <div class="bar green" style="font-size:16px;line-height:1.4" data-at="3" data-fx="up" data-p="0.15" data-hl="3"><span><b>遠端也有效</b><br>端點代理程式 / 雲端安全網頁閘道 SWG</span></div>
+        </div>
+        <div class="col" style="flex:1;gap:8px">
+          <div class="lbl" data-at="1" data-fx="fade" data-p="0.1">建議封鎖類別</div>
+          <div class="blk" data-at="1" data-fx="right" data-p="0.15"><i></i>已知惡意網站</div>
+          <div class="blk" data-at="1" data-fx="right" data-p="0.28"><i></i>釣魚網站</div>
+          <div class="blk" data-at="1" data-fx="right" data-p="0.38"><i></i>非法內容</div>
+          <div class="blk" data-at="1" data-fx="right" data-p="0.48"><i></i>翻牆 / 匿名代理</div>
+          <div class="blk" data-at="1" data-fx="right" data-p="0.56"><i></i>未授權的檔案分享</div>
+          <div class="bar red" style="font-size:17px" data-at="3" data-fx="pop" data-p="0.7">教育訓練：被擋 ≠ 想辦法繞過</div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <style>
+    .browser { background: #fff; border: 3px solid var(--ink); border-radius: 14px; overflow: hidden; }
+    .bb { display: flex; align-items: center; gap: 6px; background: #e3e7ee; padding: 7px 10px; border-bottom: 3px solid var(--ink); }
+    .bb i { width: 11px; height: 11px; border-radius: 50%; background: #fff; border: 2px solid var(--ink); }
+    .bb span { margin-left: 6px; font-size: 13.5px; background: #fff; border-radius: 8px; padding: 2px 10px; color: var(--mute); }
+    .bbody { display: flex; align-items: center; gap: 16px; padding: 16px 18px; }
+    .blk { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; background: #fff; border: 2px solid var(--ink); border-radius: 12px; padding: 8px 12px; }
+    .blk i { width: 20px; height: 20px; border-radius: 50%; border: 4px solid var(--coral); position: relative; flex: none; }
+    .blk i::after { content: ""; position: absolute; left: 50%; top: -2px; width: 4px; height: 24px; margin-left: -2px; background: var(--coral); transform: rotate(45deg); }
+  </style>
+
+  <!-- ============ s10 6.7 遠端工作 ============ -->
+  <section class="scene" data-id="s10" data-ctl="6.7" data-note="連線：VPN＋MFA&#10;機密不在&#10;公共場所談">
+    <div class="board">
+      <div class="bh"><span class="cno">6.7</span><h2>遠端工作</h2><span class="en">Remote working</span></div>
+      <div class="row" style="flex:1;min-height:0">
+        <div class="doc" style="width:300px" data-at="0" data-fx="left" data-p="0.25" data-hl="0">
+          <div class="doc-h">遠端工作規則</div>
+          <ul>
+            <li><b>誰</b>可以遠端</li>
+            <li>在<b>哪裡</b>可以工作</li>
+            <li>用<b>什麼設備</b></li>
+            <li>能處理<b>什麼等級</b>的資料</li>
+            <li>簽署同意書・定期清查</li>
+          </ul>
+        </div>
+        <div class="col" style="flex:1">
+          <div class="row" style="gap:8px">
+            <div class="tech" data-at="1" data-fx="pop" data-p="0.12" data-hl="1"><b>VPN / ZTNA</b><span>加密連線・零信任存取</span></div>
+            <div class="tech" data-at="1" data-fx="pop" data-p="0.32" data-hl="1"><b>MFA</b><span>多因子認證</span></div>
+            <div class="tech" data-at="1" data-fx="pop" data-p="0.55" data-hl="1"><b>受管設備</b><span>加密・防毒・修補</span></div>
+          </div>
+          <div class="row" style="align-items:center;gap:12px;position:relative;margin-top:4px">
+            <div data-at="2" data-fx="pop" data-p="0.1" style="flex:none;position:relative">
+              <svg viewBox="0 0 120 110" style="width:120px;height:110px"><path d="M20 40 H84 V82 Q84 100 66 100 H38 Q20 100 20 82 Z" fill="#fff" stroke="#1f2a44" stroke-width="4"/><path d="M84 52 Q104 52 102 68 Q100 80 84 78" fill="none" stroke="#1f2a44" stroke-width="4"/><path d="M38 30 q-6 -10 0 -18 M52 30 q-6 -10 0 -18 M66 30 q-6 -10 0 -18" stroke="#66708a" stroke-width="3" fill="none"/><rect x="10" y="100" width="88" height="6" rx="3" fill="#1f2a44"/></svg>
+            </div>
+            <div class="bubble" data-at="2" data-fx="pop" data-p="0.4">「那個客戶的報價是……」</div>
+            <div class="stamp" style="right:0;top:-34px;font-size:24px" data-at="3" data-fx="stamp" data-p="0.05">大大的不行！</div>
+          </div>
+          <div class="lbl" data-at="3" data-fx="fade" data-p="0.3">實體環境也要管</div>
+          <div class="row" style="gap:8px;flex-wrap:wrap" data-at="3" data-fx="up" data-p="0.35">
+            <span class="chip m">防窺片</span><span class="chip m">公共場所不談機密</span><span class="chip m">家人不碰公務電腦</span><span class="chip m">紙本妥善銷毀</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <style>
+    .tech { flex: 1; background: #dfeaff; border: 3px solid var(--ink); border-radius: 14px; padding: 10px; text-align: center; display: flex; flex-direction: column; gap: 2px; }
+    .tech b { font-family: var(--f-display); font-size: 20px; }
+    .tech span { font-size: 14px; color: var(--mute); }
+    .bubble { position: relative; background: #fff; border: 3px solid var(--ink); border-radius: 18px; padding: 12px 16px; font-family: var(--f-display); font-weight: 700; font-size: 20px; }
+  </style>
+
+  <!-- ============ s11 管理案例一 ============ -->
+  <section class="scene" data-id="s11" data-ctl="8.22" data-note="網路區隔&#10;是老闆的事！">
+    <div class="board">
+      <div class="bh"><span class="cno" style="background:var(--coral);color:#fff">案例</span><h2>產線停工兩天</h2><span class="tag">案例情境・改編自輔導實務常見狀況</span></div>
+      <div class="row" style="gap:12px">
+        <div class="panel" data-at="0" data-fx="up" data-p="0.4">
+          <div class="pn">1</div>
+          <svg viewBox="0 0 220 120"><path d="M10 100 H210" stroke="#1f2a44" stroke-width="4"/><g fill="#fff" stroke="#1f2a44" stroke-width="3"><rect x="20" y="40" width="44" height="30" rx="3"/><rect x="80" y="40" width="44" height="30" rx="3"/></g><path d="M42 70 V100 M102 70 V100 M172 70 V100" stroke="#1f2a44" stroke-width="3"/><g transform="translate(144 26)"><path d="M0 44 V14 L16 24 V14 L32 24 V0 H56 V44 Z" fill="#e3e7ee" stroke="#1f2a44" stroke-width="3"/></g><text x="110" y="22" text-anchor="middle" font-size="15" fill="#1f2a44">192.168.1.0/24</text></svg>
+          <b>辦公室與產線同一網段</b>
+        </div>
+        <div class="panel" data-at="2" data-fx="up" data-p="0.15">
+          <div class="pn">2</div>
+          <svg viewBox="0 0 220 120"><g transform="translate(14 30)"><rect width="66" height="46" rx="4" fill="#fff" stroke="#1f2a44" stroke-width="3"/><path d="M0 0 L33 26 L66 0" fill="none" stroke="#1f2a44" stroke-width="3"/><path d="M58 40 q8 14 -4 22 q-10 4 -12 -6" stroke="#ff6b57" stroke-width="4" fill="none"/></g><g stroke="#ff6b57" stroke-width="5" fill="none"><path d="M96 54 H140" stroke-dasharray="8 6"/><path d="M150 54 L196 24" stroke-dasharray="8 6"/><path d="M150 54 L196 90" stroke-dasharray="8 6"/></g><text x="168" y="62" text-anchor="middle" font-size="26" fill="#ff6b57">!</text></svg>
+          <b>點擊釣魚信 → 橫向擴散</b>
+        </div>
+        <div class="panel" data-at="2" data-fx="up" data-p="0.6" style="background:#ffe1dc">
+          <div class="pn">3</div>
+          <svg viewBox="0 0 220 120"><g transform="translate(40 30)"><path d="M0 70 V28 L26 44 V28 L52 44 V8 H90 V70 Z" fill="#e3e7ee" stroke="#1f2a44" stroke-width="3"/></g><g transform="translate(126 54)"><rect x="0" y="16" width="40" height="32" rx="5" fill="#ffd54a" stroke="#1f2a44" stroke-width="3"/><path d="M8 16 V8 a12 12 0 0 1 24 0 V16" fill="none" stroke="#1f2a44" stroke-width="4"/></g></svg>
+          <b style="color:#c4372a">產線被加密，停工 2 天</b>
+        </div>
+      </div>
+      <div class="lbl" data-at="4" data-fx="fade" data-p="0.05">改善措施</div>
+      <div class="row" style="gap:10px;align-items:center">
+        <span class="chip m" data-at="4" data-fx="pop" data-p="0.08">OT 產線獨立分區</span>
+        <span class="chip m" data-at="4" data-fx="pop" data-p="0.2">跳板機＋白名單規則</span>
+        <span class="chip m" data-at="4" data-fx="pop" data-p="0.35">離線備份</span>
+      </div>
+      <div class="cost" data-at="4" data-fx="up" data-p="0.62">
+        <div class="lbl" style="margin:0">用老闆聽得懂的語言比一比</div>
+        <div class="cb"><span>停工損失</span><i style="width:430px;background:var(--coral)"></i><em>2 天產值＋延遲交貨＋商譽</em></div>
+        <div class="cb"><span>區隔投資</span><i style="width:110px;background:var(--mint)"></i><em>防火牆規則＋跳板機＋建置工時</em></div>
+      </div>
+      <div class="stamp" style="right:30px;bottom:24px" data-at="5" data-fx="stamp" data-p="0.15">區隔是老闆的事！</div>
+    </div>
+  </section>
+  <style>
+    .panel { flex: 1; position: relative; background: #fff; border: 3px solid var(--ink); border-radius: 16px; padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .panel svg { width: 220px; height: 120px; }
+    .panel b { font-family: var(--f-display); font-size: 18px; }
+    .cost { display: flex; flex-direction: column; gap: 8px; background: #fff; border: 2px dashed rgba(31,42,68,.35); border-radius: 14px; padding: 10px 14px; }
+    .cb { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; }
+    .cb span { width: 70px; flex: none; }
+    .cb i { height: 22px; border-radius: 6px; border: 2px solid var(--ink); flex: none; }
+    .cb em { font-style: normal; font-size: 14px; color: var(--mute); font-weight: 500; }
+    .pn { position: absolute; left: -10px; top: -10px; width: 32px; height: 32px; border-radius: 50%; background: var(--sun); border: 3px solid var(--ink); display: grid; place-items: center; font-family: var(--f-display); font-weight: 900; }
+  </style>
+
+  <!-- ============ s12 第二道菜 ============ -->
+  <section class="scene" data-id="s12" data-ctl="all" data-note="換戴&#10;稽核員帽子！">
+    <div class="board divider">
+      <div class="course" data-at="-1" data-fx="down" data-d="0.1">第 二 道 菜</div>
+      <svg viewBox="0 0 400 230" style="width:400px;height:230px">
+        <ellipse cx="200" cy="200" rx="180" ry="24" fill="#fff" stroke="#ffd54a" stroke-width="4"/>
+        <text x="200" y="168" text-anchor="middle" font-size="44" font-weight="900" fill="#ffd54a">稽核查核重點</text>
+        <g data-at="0" data-fx="lift" data-p="0.2">
+          <path d="M44 194 Q44 60 200 56 Q356 60 356 194 Z" fill="#cfd8ee" stroke="#fff" stroke-width="4"/>
+          <path d="M90 150 Q110 92 170 80" stroke="#fff" stroke-width="8" fill="none" opacity=".7" stroke-linecap="round"/>
+          <circle cx="200" cy="48" r="14" fill="#cfd8ee" stroke="#fff" stroke-width="4"/>
+        </g>
+      </svg>
+      <p data-at="1" data-fx="up" data-p="0.2">內部稽核、第三方驗證，思路都一樣</p>
+    </div>
+  </section>
+
+  <!-- ============ s13 稽核三步走 ============ -->
+  <section class="scene" data-id="s13" data-ctl="all" data-note="文件 → 紀錄 → 現場">
+    <div class="board">
+      <div class="bh"><h2>稽核三步走</h2><span class="tag">內稽・外稽通用</span></div>
+      <div class="row" style="gap:10px;align-items:stretch">
+        <div class="step" data-at="0" data-fx="pop" data-p="0.08" data-hl="0"><div class="sn">1</div>
+          <svg viewBox="0 0 80 80"><path d="M16 6 H50 L66 22 V74 H16 Z" fill="#fff" stroke="#1f2a44" stroke-width="4"/><path d="M26 34 H56 M26 46 H56 M26 58 H46" stroke="#1f2a44" stroke-width="4"/></svg>
+          <b>看文件</b><span>政策、程序有沒有涵蓋這些控制措施？</span></div>
+        <div class="arr" data-at="0" data-fx="fade" data-p="0.3">➜</div>
+        <div class="step" data-at="0" data-fx="pop" data-p="0.35" data-hl="0"><div class="sn">2</div>
+          <svg viewBox="0 0 80 80"><path d="M6 20 H30 L36 26 H74 V70 H6 Z" fill="#ffd54a" stroke="#1f2a44" stroke-width="4"/><circle cx="46" cy="46" r="12" fill="#fff" stroke="#1f2a44" stroke-width="4"/><path d="M55 55 L66 66" stroke="#1f2a44" stroke-width="5"/></svg>
+          <b>查紀錄</b><span>抽樣、往前往後追溯</span></div>
+        <div class="arr" data-at="0" data-fx="fade" data-p="0.55">➜</div>
+        <div class="step" data-at="0" data-fx="pop" data-p="0.62" data-hl="0"><div class="sn">3</div>
+          <svg viewBox="0 0 80 80"><rect x="6" y="10" width="68" height="46" rx="4" fill="#dfeaff" stroke="#1f2a44" stroke-width="4"/><path d="M28 70 H52 M40 56 V70" stroke="#1f2a44" stroke-width="4"/><path d="M18 40 L30 28 L40 36 L58 20" stroke="#ff6b57" stroke-width="4" fill="none"/></svg>
+          <b>看現場</b><span>請對方直接打開系統畫面</span></div>
+      </div>
+      <div class="bar red" data-at="1" data-fx="up" data-p="0.2" data-hl="1">文件寫得漂亮 ≠ 現場設定一樣 → 寫一套、做一套</div>
+      <div class="bar blue" data-at="3" data-fx="up" data-p="0.15" data-hl="3">抽樣要有代表性：樣本由稽核員選，不讓受稽方自己挑</div>
+      <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center" data-at="2" data-fx="up" data-p="0.3"><span class="lbl" style="margin:0">稽核員常用問句</span><span class="chip y">「請示範給我看」</span><span class="chip y">「最近一次是什麼時候？」</span><span class="chip y">「如果發生了，怎麼處理？」</span></div>
+    </div>
+  </section>
+  <style>
+    .step { flex: 1; position: relative; background: #fff; border: 3px solid var(--ink); border-radius: 18px; padding: 14px 12px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; box-shadow: 4px 4px 0 rgba(31,42,68,.18); }
+    .step svg { width: 76px; height: 76px; }
+    .step b { font-family: var(--f-display); font-size: 26px; }
+    .step span { font-size: 16px; color: var(--mute); line-height: 1.4; }
+    .sn { position: absolute; left: -12px; top: -12px; width: 36px; height: 36px; border-radius: 50%; background: var(--coral); color: #fff; border: 3px solid var(--ink); display: grid; place-items: center; font-family: var(--f-display); font-weight: 900; font-size: 18px; }
+    .arr { align-self: center; font-size: 30px; font-weight: 900; color: var(--ink); }
+  </style>
+
+  <!-- ============ s14 查核清單 ============ -->
+  <section class="scene" data-id="s14" data-ctl="all" data-note="VPN 帳號&#10;vs. 離職名單&#10;一比就知道">
+    <div class="board" style="gap:8px">
+      <div class="bh"><h2>查核清單：證據與關鍵提問</h2></div>
+      <div class="tbl">
+        <div class="tr th" data-at="0" data-fx="fade" data-p="0.1"><div>控制措施</div><div>要看的證據</div><div>關鍵提問</div></div>
+        <div class="tr" data-at="0" data-fx="left" data-p="0.25" data-hl="1"><div><b>8.9</b> 組態管理</div><div>組態基準、CMDB、合規掃描報告、例外核准</div><div>基準多久檢視？偏離怎麼處理？</div></div>
+        <div class="tr" data-at="0" data-fx="left" data-p="0.35" data-hl="2,3,4"><div><b>8.20</b> 網路安全</div><div>網路架構圖、防火牆規則匯出、規則審查紀錄</div><div>架構圖最近一次更新是哪天？</div></div>
+        <div class="tr" data-at="0" data-fx="left" data-p="0.45"><div><b>8.22</b> 網路之區隔</div><div>網段規劃表、VLAN / ACL 設定</div><div>訪客 Wi-Fi 連得到內網嗎？</div></div>
+        <div class="tr" data-at="0" data-fx="left" data-p="0.55"><div><b>8.21</b> 網路服務之安全</div><div>合約 / SLA、服務報告、供應商評核</div><div>SLA 未達成時怎麼處理？</div></div>
+        <div class="tr" data-at="0" data-fx="left" data-p="0.65"><div><b>8.23</b> 網頁過濾</div><div>過濾政策、封鎖日誌、例外清單</div><div>誰有例外？誰核准？到期了嗎？</div></div>
+        <div class="tr" data-at="0" data-fx="left" data-p="0.75" data-hl="5"><div><b>6.7</b> 遠端工作</div><div>遠端政策、VPN 帳號清單、MFA 設定</div><div>離職人員帳號何時停用？</div></div>
+      </div>
+      <div class="stamp green" style="right:30px;bottom:16px;font-size:22px" data-at="4" data-fx="stamp" data-p="0.3">拿圖去機房對設備</div>
+    </div>
+  </section>
+  <style>
+    .tbl { display: flex; flex-direction: column; gap: 6px; }
+    .tr { display: grid; grid-template-columns: 190px 1fr 250px; gap: 0; background: #fff; border: 2px solid var(--ink); border-radius: 12px; font-size: 16px; line-height: 1.35; }
+    .tr > div { padding: 9px 12px; }
+    .tr > div + div { border-left: 2px dashed rgba(31,42,68,.25); }
+    .tr b { font-family: var(--f-display); color: var(--coral); }
+    .tr > div:last-child { font-weight: 700; color: var(--navy); }
+    .tr.th { background: var(--ink); color: #fff; font-family: var(--f-display); font-weight: 900; font-size: 17px; }
+    .tr.th > div:last-child { color: var(--sun); }
+  </style>
+
+  <!-- ============ s15 追蹤法 ============ -->
+  <section class="scene" data-id="s15" data-ctl="8.20" data-note="斷一環&#10;＝一個發現">
+    <div class="board">
+      <div class="bh"><h2>稽核技巧：追蹤法</h2><span class="tag">Audit trail</span></div>
+      <div class="chain" id="chain">
+        <div class="lk" data-at="0" data-fx="pop" data-p="0.12"><b>防火牆規則</b><span>#57</span></div>
+        <div class="ln" data-at="0" data-fx="grow" data-p="0.22"></div>
+        <div class="lk" data-at="0" data-fx="pop" data-p="0.3"><b>申請單</b><span>誰申請？為何？</span></div>
+        <div class="ln" data-at="0" data-fx="grow" data-p="0.38"></div>
+        <div class="lk" data-at="0" data-fx="pop" data-p="0.45"><b>核准紀錄</b><span>權責主管</span></div>
+        <div class="ln" data-at="0" data-fx="grow" data-p="0.52"></div>
+        <div class="lk" data-at="0" data-fx="pop" data-p="0.58"><b>測試結果</b><span>生效驗證</span></div>
+        <div class="ln broken" data-at="0" data-fx="grow" data-p="0.66"></div>
+        <div class="lk" data-at="0" data-fx="pop" data-p="0.75"><b>定期審查</b><span>有檢視到它？</span></div>
+        <div class="mag" id="mag" data-at="1" data-fx="pop" data-p="0.0"><svg viewBox="0 0 60 60"><circle cx="24" cy="24" r="17" fill="rgba(223,234,255,.7)" stroke="#1f2a44" stroke-width="5"/><path d="M37 37 L54 54" stroke="#1f2a44" stroke-width="8" stroke-linecap="round"/></svg></div>
+        <div class="brk" data-at="2" data-fx="stamp" data-p="0.18">✂</div>
+      </div>
+      <div class="stamp" style="left:420px;top:290px;font-size:26px" data-at="2" data-fx="stamp" data-p="0.22">斷一環＝一個發現</div>
+      <div class="bar blue" style="margin-top:auto" data-at="2" data-fx="up" data-p="0.55">反向追蹤：申請單 → 實際設定，確認照核准內容設定</div>
+      <div class="row" style="gap:8px;flex-wrap:wrap" data-at="2" data-fx="up" data-p="0.8">
+        <span class="lbl" style="margin:0">其他好用題材</span><span class="chip y">VPN 帳號 ↔ 離職名單</span><span class="chip y">變更單 ↔ 組態差異</span><span class="chip y">架構圖 ↔ 機房設備</span>
+      </div>
+    </div>
+  </section>
+  <style>
+    .chain { position: relative; display: flex; align-items: center; margin-top: 40px; height: 150px; }
+    .lk { width: 118px; flex: none; background: #fff; border: 3px solid var(--ink); border-radius: 16px; padding: 12px 6px; text-align: center; display: flex; flex-direction: column; gap: 4px; box-shadow: 4px 4px 0 rgba(31,42,68,.18); }
+    .lk b { font-family: var(--f-display); font-size: 19px; }
+    .lk span { font-size: 14px; color: var(--mute); }
+    .ln { flex: 1; height: 8px; background: var(--ink); border-radius: 4px; transform-origin: left center; }
+    .ln.broken { background: repeating-linear-gradient(90deg, var(--coral) 0 10px, transparent 10px 16px); }
+    .mag { position: absolute; top: -48px; left: 0; width: 60px; height: 60px; }
+    .brk { position: absolute; left: 610px; top: 6px; font-size: 40px; color: var(--coral); }
+  </style>
+
+  <!-- ============ s16 管理案例二 ============ -->
+  <section class="scene" data-id="s16" data-ctl="8.20" data-note="簽名 ≠ 審查">
+    <div class="board">
+      <div class="bh"><span class="cno" style="background:var(--coral);color:#fff">案例</span><h2>「暫時」的規則</h2><span class="tag">稽核現場情境</span></div>
+      <div class="fw" data-at="0" data-fx="up" data-p="0.1">
+        <div class="fr fh"><div>#</div><div>來源</div><div>目的</div><div>服務</div><div>動作</div><div>備註</div><div>建立日期</div></div>
+        <div class="fr"><div>55</div><div>10.1.20.0/24</div><div>10.1.10.15</div><div>HTTPS</div><div>允許</div><div>ERP 存取</div><div>2025/04/02</div></div>
+        <div class="fr"><div>56</div><div>10.1.30.8</div><div>10.1.10.20</div><div>SQL</div><div>允許</div><div>報表主機</div><div>2025/11/18</div></div>
+        <div class="fr bad" data-hl="0,1,2"><div>57</div><div>Any</div><div>Any</div><div>Any</div><div>允許</div><div>測試用，暫時</div><div class="dt">2023/08/14</div></div>
+        <div class="fr"><div>58</div><div>Any</div><div>Any</div><div>Any</div><div>拒絕</div><div>預設拒絕</div><div>2021/01/05</div></div>
+      </div>
+      <div class="row" style="gap:12px;align-items:center;position:relative">
+        <div class="rv" data-at="2" data-fx="pop" data-p="0.45"><b>規則審查紀錄 2025/09</b><span>已審查，無異常</span><i>主管簽名</i></div>
+        <div class="rv" data-at="2" data-fx="pop" data-p="0.6"><b>規則審查紀錄 2026/03</b><span>已審查，無異常</span><i>主管簽名</i></div>
+        <div class="stamp" style="left:150px;top:104px" data-at="3" data-fx="stamp" data-p="0.25">簽名式審查</div>
+        <div class="callout" data-at="2" data-fx="pop" data-p="0.1">建立於<br><b>三年前！</b></div>
+      </div>
+      <div class="bar red" style="margin-top:auto" data-at="4" data-fx="up" data-p="0.2">本質是審查機制失效 → 管理階層要問：為什麼審查沒抓到？</div>
+    </div>
+  </section>
+  <style>
+    .fw { background: #1f2a44; border: 3px solid var(--ink); border-radius: 12px; padding: 6px; font-family: "Noto Sans TC", monospace; }
+    .fr { display: grid; grid-template-columns: 40px 120px 110px 70px 60px 1fr 110px; color: #dfe6f5; font-size: 15px; border-radius: 6px; font-variant-numeric: tabular-nums; }
+    .fr > div { padding: 6px 8px; }
+    .fh { color: var(--sun); font-weight: 700; border-bottom: 1px solid rgba(255,255,255,.2); border-radius: 0; }
+    .fr.bad { background: rgba(255,107,87,.35); color: #fff; font-weight: 700; }
+    .rv { background: #fff; border: 3px solid var(--ink); border-radius: 12px; padding: 10px 14px; display: flex; flex-direction: column; gap: 2px; width: 220px; }
+    .rv b { font-family: var(--f-display); font-size: 17px; }
+    .rv span { color: var(--leaf); font-weight: 700; font-size: 17px; }
+    .rv i { font-style: normal; color: var(--mute); font-size: 14px; }
+    .callout { margin-left: auto; background: var(--sun); border: 3px solid var(--ink); border-radius: 50%; width: 120px; height: 120px; display: grid; place-items: center; text-align: center; font-family: var(--f-display); font-weight: 700; font-size: 18px; line-height: 1.3; }
+    .callout b { color: var(--coral); font-size: 22px; }
+  </style>
+
+  <!-- ============ s17 第三道菜 ============ -->
+  <section class="scene" data-id="s17" data-ctl="all" data-note="最辣的一道菜！&#10;小心別嗆到">
+    <div class="board divider" style="background:radial-gradient(circle at 50% 70%, #7a2a2a 0%, #3a1820 75%)">
+      <div class="course" data-at="-1" data-fx="down" data-d="0.1">第 三 道 菜</div>
+      <svg viewBox="0 0 400 230" style="width:400px;height:230px">
+        <ellipse cx="200" cy="200" rx="180" ry="24" fill="#fff" stroke="#ffd54a" stroke-width="4"/>
+        <text x="200" y="168" text-anchor="middle" font-size="48" font-weight="900" fill="#ffd54a">常見缺失</text>
+        <g data-at="0" data-fx="pop" data-p="0.55"><g transform="translate(300 70) rotate(25)"><path d="M0 0 Q30 4 34 50 Q10 40 -6 8 Z" fill="#ff3b2f" stroke="#fff" stroke-width="3"/><path d="M0 0 q-6 -10 2 -16" stroke="#3ccf6b" stroke-width="5" fill="none"/></g></g>
+        <g data-at="0" data-fx="pop" data-p="0.65"><g transform="translate(70 80) rotate(-30)"><path d="M0 0 Q30 4 34 50 Q10 40 -6 8 Z" fill="#ff3b2f" stroke="#fff" stroke-width="3"/><path d="M0 0 q-6 -10 2 -16" stroke="#3ccf6b" stroke-width="5" fill="none"/></g></g>
+        <g data-at="0" data-fx="lift" data-p="0.25">
+          <path d="M44 194 Q44 60 200 56 Q356 60 356 194 Z" fill="#cfd8ee" stroke="#fff" stroke-width="4"/>
+          <path d="M90 150 Q110 92 170 80" stroke="#fff" stroke-width="8" fill="none" opacity=".7" stroke-linecap="round"/>
+          <circle cx="200" cy="48" r="14" fill="#cfd8ee" stroke="#fff" stroke-width="4"/>
+        </g>
+      </svg>
+      <p data-at="1" data-fx="up" data-p="0.2" style="color:#ffd9d2">稽核與輔導現場，最常看到的問題</p>
+    </div>
+  </section>
+
+  <!-- ============ s18 十大缺失 ============ -->
+  <section class="scene" data-id="s18" data-ctl="all" data-note="前三名&#10;都在 8.20！">
+    <div class="board" style="gap:10px">
+      <div class="bh"><h2>十大常見缺失</h2><span class="tag">稽核・輔導現場彙整</span></div>
+      <div class="top10">
+        <div class="nc" data-at="0" data-fx="pop" data-p="0.3" data-hl="1"><i>1</i><b>8.20</b><span>網路架構圖過期，與現況不符</span></div>
+        <div class="nc" data-at="3" data-fx="pop" data-p="0.05"><i>6</i><b>8.22</b><span>訪客 Wi-Fi 與內網未區隔</span></div>
+        <div class="nc" data-at="0" data-fx="pop" data-p="0.5" data-hl="1"><i>2</i><b>8.20</b><span>Any 規則、測試規則未移除</span></div>
+        <div class="nc" data-at="3" data-fx="pop" data-p="0.25"><i>7</i><b>8.22</b><span>OT 產線與辦公網路同網段</span></div>
+        <div class="nc" data-at="0" data-fx="pop" data-p="0.72" data-hl="1"><i>3</i><b>8.20</b><span>規則審查只有簽名，沒有內容</span></div>
+        <div class="nc" data-at="3" data-fx="pop" data-p="0.55"><i>8</i><b>8.21</b><span>網路服務合約無安全要求、SLA 沒人看</span></div>
+        <div class="nc" data-at="2" data-fx="pop" data-p="0.15"><i>4</i><b>8.9</b><span>未建組態基準、預設帳密未修改</span></div>
+        <div class="nc" data-at="5" data-fx="pop" data-p="0.1"><i>9</i><b>8.23</b><span>主管全部例外、不受過濾</span></div>
+        <div class="nc" data-at="2" data-fx="pop" data-p="0.7"><i>5</i><b>8.9</b><span>改設定沒走變更管理</span></div>
+        <div class="nc" data-at="5" data-fx="pop" data-p="0.62"><i>10</i><b>6.7</b><span>VPN 無 MFA、離職帳號仍可登入</span></div>
+      </div>
+    </div>
+  </section>
+  <style>
+    .top10 { display: grid; grid-template-columns: 1fr 1fr; gap: 9px 14px; }
+    .nc { display: flex; align-items: center; gap: 10px; background: #fff; border: 2px solid var(--ink); border-radius: 14px; padding: 8px 12px; min-height: 78px; box-sizing: border-box; }
+    .nc i { flex: none; font-style: normal; width: 34px; height: 34px; border-radius: 50%; background: var(--coral); color: #fff; border: 2px solid var(--ink); display: grid; place-items: center; font-family: var(--f-display); font-weight: 900; font-size: 16px; }
+    .nc b { flex: none; font-family: var(--f-display); font-size: 15px; background: var(--sun); border: 2px solid var(--ink); border-radius: 8px; padding: 0 6px; }
+    .nc span { font-weight: 700; font-size: 18px; line-height: 1.35; }
+  </style>
+
+  <!-- ============ s19 不符合事項怎麼寫 ============ -->
+  <section class="scene" data-id="s19" data-ctl="8.20" data-note="形容詞&#10;不算證據！">
+    <div class="board">
+      <div class="bh"><h2>不符合事項怎麼寫</h2><span class="tag">範例・FW-01 規則 #57</span></div>
+      <div class="row" style="flex:1;min-height:0">
+        <div class="ncr">
+          <div class="ncr-h" data-at="0" data-fx="fade" data-p="0.05">不符合事項報告（NCR）</div>
+          <div class="ncr-r" data-at="0" data-fx="left" data-p="0.35" data-hl="0"><em>要求</em><p>ISO/IEC 27001:2022 附錄 A 8.20；本公司「網路安全管理程序」5.3：防火牆規則應經申請核准，並每半年審查。</p></div>
+          <div class="ncr-r" data-at="1" data-fx="left" data-p="0.05" data-hl="1"><em>證據</em><p>抽查 FW-01 規則（2026/09/15 匯出）：#57 來源、目的、服務皆為 Any，備註「測試用」，建立於 2023/08/14，查無申請紀錄；2025/09、2026/03 審查紀錄均未檢出。</p></div>
+          <div class="ncr-r" data-at="0" data-fx="left" data-p="0.7" data-hl="0"><em>落差</em><p>規則未經核准且長期存在，定期審查未有效執行。</p></div>
+          <div class="ncr-r" data-at="3" data-fx="left" data-p="0.1" data-hl="3"><em>等級</em><p><b style="color:var(--coral)">次要不符合（Minor）</b></p></div>
+          <div class="ncr-r" data-at="3" data-fx="left" data-p="0.7"><em>後續</em><p>受稽單位於約定期限內提出原因分析、矯正措施，並由稽核員確認有效性。</p></div>
+        </div>
+        <div class="col" style="flex:1;gap:8px">
+          <div class="chk" style="background:#ffe1dc" data-at="1" data-fx="right" data-p="0.6"><i style="background:var(--coral)">✗</i><div><b style="text-decoration:line-through">防火牆管理不佳</b><small>形容詞，無法追溯</small></div></div>
+          <div class="chk" style="background:#d6f6ec" data-at="1" data-fx="right" data-p="0.25"><i>✓</i><div><b>哪台・哪天・第幾條</b><small>具體、可追溯、可重現</small></div></div>
+          <div class="lbl" style="margin-top:4px" data-at="3" data-fx="fade" data-p="0.05">等級怎麼判？</div>
+          <div class="grade" data-at="3" data-fx="up" data-p="0.15"><b>次要</b>單一事件，制度大致有運作</div>
+          <div class="grade" style="background:#ffe1dc" data-at="3" data-fx="up" data-p="0.6"><b>主要</b>機制完全未運作，或造成重大風險</div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <style>
+    .ncr { width: 470px; flex: none; background: #fff; border: 3px solid var(--ink); border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; box-shadow: 5px 5px 0 rgba(31,42,68,.18); }
+    .ncr-h { font-family: var(--f-display); font-weight: 900; font-size: 20px; border-bottom: 3px double var(--ink); padding-bottom: 4px; }
+    .ncr-r { display: flex; gap: 10px; align-items: flex-start; border-radius: 8px; padding: 2px; }
+    .ncr-r em { flex: none; font-style: normal; font-family: var(--f-display); font-weight: 900; font-size: 15px; background: var(--ink); color: #fff; border-radius: 6px; padding: 2px 8px; margin-top: 2px; }
+    .ncr-r p { margin: 0; font-size: 16px; line-height: 1.55; }
+    .grade { background: #fff3c4; border: 2px solid var(--ink); border-radius: 12px; padding: 8px 12px; font-size: 16px; line-height: 1.4; display: flex; gap: 8px; align-items: baseline; }
+    .grade b { font-family: var(--f-display); font-size: 18px; flex: none; }
+  </style>
+
+  <!-- ============ s20 修正 vs 矯正 ============ -->
+  <section class="scene" data-id="s20" data-ctl="8.20" data-note="修正止血，&#10;矯正治病！">
+    <div class="board">
+      <div class="bh"><h2>修正 vs. 矯正措施</h2><span class="tag">ISO/IEC 27001 第 10.2 節</span></div>
+      <div class="row" style="gap:8px;align-items:stretch;flex:1;min-height:0">
+        <div class="ca" data-at="0" data-fx="pop" data-p="0.4" data-hl="0,1"><em style="background:#ffd54a">修正</em><b>刪除規則 #57</b><span>止血，處理眼前的問題</span></div>
+        <div class="arr" data-at="2" data-fx="fade" data-p="0.05">➜</div>
+        <div class="ca" data-at="2" data-fx="pop" data-p="0.15" data-hl="2"><em style="background:#dfeaff">原因分析</em><b>為什麼三年沒發現？</b><span>・審查沒有逐條清單<br>・暫時規則沒有到期日</span></div>
+        <div class="arr" data-at="3" data-fx="fade" data-p="0.02">➜</div>
+        <div class="ca" style="flex:1.35" data-at="3" data-fx="pop" data-p="0.05" data-hl="3"><em style="background:#d6f6ec">矯正措施</em><b>防止再發生</b><span>・規則加註到期日與負責人<br>・用使用次數報表逐條審查<br>・擴大清查其他防火牆</span></div>
+        <div class="arr" data-at="3" data-fx="fade" data-p="0.7">➜</div>
+        <div class="ca" data-at="3" data-fx="pop" data-p="0.78" data-hl="3"><em style="background:#efe6ff">有效性確認</em><b>下次審查驗證</b><span>確認問題沒有再發生</span></div>
+      </div>
+      <div class="bar" style="justify-content:center;font-size:24px" data-at="4" data-fx="pop" data-p="0.1">修正是止血　→　矯正是治病</div>
+    </div>
+  </section>
+  <style>
+    .ca { flex: 1; background: #fff; border: 3px solid var(--ink); border-radius: 16px; padding: 12px 10px; display: flex; flex-direction: column; gap: 6px; box-shadow: 4px 4px 0 rgba(31,42,68,.18); min-width: 0; }
+    .ca em { font-style: normal; align-self: flex-start; font-family: var(--f-display); font-weight: 900; font-size: 16px; border: 2px solid var(--ink); border-radius: 8px; padding: 1px 8px; }
+    .ca b { font-family: var(--f-display); font-size: 20px; }
+    .ca span { font-size: 16px; line-height: 1.65; color: #3a4562; }
+  </style>
+
+  <!-- ============ s21 小測驗 ============ -->
+  <section class="scene" data-id="s21" data-ctl="all" data-note="全對的同學&#10;拍拍手！">
+    <div class="board" style="gap:12px">
+      <div class="bh"><h2>隨堂小測驗</h2><span class="tag">3 題・答對拍拍手</span></div>
+      <div class="qz" data-at="0" data-fx="left" data-p="0.15" data-hl="0"><i>Q1</i><p>訪客 Wi-Fi 只要有設密碼，就可以跟內網同一個網段？</p><div class="ans x" data-at="1" data-fx="stamp" data-p="0.02">✗ 錯</div></div>
+      <div class="qz" data-at="2" data-fx="left" data-p="0.05" data-hl="2"><i>Q2</i><p>本主題中，2022 年版新增的控制措施？<br><span class="opt">A. 8.20 ＋ 8.22</span><span class="opt" data-hl="3">B. 8.9 ＋ 8.23</span><span class="opt">C. 8.21 ＋ 6.7</span></p><div class="ans o" data-at="3" data-fx="stamp" data-p="0.1">B</div></div>
+      <div class="qz" data-at="4" data-fx="left" data-p="0.05" data-hl="4"><i>Q3</i><p>錯誤的防火牆規則刪掉了，矯正措施就算完成？</p><div class="ans x" data-at="5" data-fx="stamp" data-p="0.02">✗ 錯</div></div>
+      <div class="clap" data-at="6" data-fx="pop" data-p="0.4">拍拍手！</div>
+    </div>
+  </section>
+  <style>
+    .qz { position: relative; display: flex; align-items: center; gap: 14px; background: #fff; border: 3px solid var(--ink); border-radius: 16px; padding: 12px 16px; min-height: 92px; box-sizing: border-box; }
+    .qz i { flex: none; font-style: normal; font-family: var(--f-display); font-weight: 900; font-size: 20px; width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; background: var(--sun); border: 3px solid var(--ink); }
+    .qz p { margin: 0; font-size: 19px; font-weight: 700; line-height: 1.5; padding-right: 110px; }
+    .opt { display: inline-block; margin: 4px 10px 0 0; font-size: 16px; padding: 2px 10px; border: 2px solid var(--ink); border-radius: 8px; background: var(--sky); }
+    .ans { position: absolute; right: 16px; top: 50%; margin-top: -28px; font-family: var(--f-display); font-weight: 900; font-size: 28px; height: 56px; min-width: 56px; padding: 0 12px; box-sizing: border-box; display: grid; place-items: center; border-radius: 14px; border: 4px solid; background: #fff; }
+    .ans.x { color: var(--coral); border-color: var(--coral); }
+    .ans.o { color: var(--leaf); border-color: var(--leaf); border-radius: 50%; }
+    .clap { position: absolute; right: 30px; bottom: 16px; font-family: var(--f-display); font-weight: 900; font-size: 30px; background: var(--sun); border: 3px solid var(--ink); border-radius: 999px; padding: 6px 22px; box-shadow: 4px 4px 0 var(--ink); }
+  </style>
+
+  <!-- ============ s22 總結 ============ -->
+  <section class="scene" data-id="s22" data-ctl="all" data-note="基準・追蹤・根因&#10;下堂課見！">
+    <div class="board">
+      <div class="bh"><h2>三句話帶回家</h2></div>
+      <div class="row" style="gap:14px;align-items:stretch">
+        <div class="tk" data-at="0" data-fx="pop" data-p="0.3" data-hl="0"><em>作業面</em><b>先有基準與架構圖，<br>再談管理</b></div>
+        <div class="tk" data-at="1" data-fx="pop" data-p="0.1" data-hl="1"><em>稽核面</em><b>文件・紀錄・現場，<br>追蹤法找出<br>斷掉的那一環</b></div>
+        <div class="tk" data-at="2" data-fx="pop" data-p="0.1" data-hl="2"><em>缺失面</em><b>不要只修正，<br>找到根本原因</b></div>
+      </div>
+      <div class="bye" data-at="3" data-fx="pop" data-p="0.2">下課囉！下堂課見～</div>
+      <div class="confetti" id="confetti"></div>
+    </div>
+  </section>
+  <style>
+    .tk { flex: 1; background: #fff; border: 3px solid var(--ink); border-radius: 18px; padding: 18px 14px; display: flex; flex-direction: column; gap: 10px; text-align: center; box-shadow: 5px 5px 0 rgba(31,42,68,.2); }
+    .tk em { font-style: normal; align-self: center; font-family: var(--f-display); font-weight: 900; font-size: 18px; background: var(--ink); color: var(--sun); padding: 3px 14px; border-radius: 999px; }
+    .tk b { font-family: var(--f-display); font-size: 22px; line-height: 1.5; }
+    .bye { align-self: center; margin-top: 14px; font-family: var(--f-display); font-weight: 900; font-size: 40px; background: var(--sun); border: 4px solid var(--ink); border-radius: 999px; padding: 10px 36px; box-shadow: 6px 6px 0 var(--ink); }
+    .confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+    .confetti i { position: absolute; width: 10px; height: 16px; border-radius: 2px; }
+  </style>
+
+  <!-- ============ 角色：Allan Lo ============ -->
+  <div class="char" id="cA">
+    <svg viewBox="0 0 240 340">
+      <ellipse cx="120" cy="333" rx="78" ry="7" fill="rgba(31,42,68,.18)"/>
+      <g id="A-body">
+        <rect x="96" y="284" width="20" height="42" rx="8" fill="#3a3f55"/>
+        <rect x="124" y="284" width="20" height="42" rx="8" fill="#3a3f55"/>
+        <ellipse cx="104" cy="327" rx="17" ry="7" fill="#1d1f2b"/>
+        <ellipse cx="138" cy="327" rx="17" ry="7" fill="#1d1f2b"/>
+        <g id="A-armB"><rect x="62" y="212" width="24" height="66" rx="12" fill="#26345f"/><circle cx="74" cy="280" r="12" fill="#ffd9b8" stroke="#1f2a44" stroke-width="2"/></g>
+        <path d="M70 296 Q66 214 120 204 Q174 214 170 296 Z" fill="#2b3a67" stroke="#1f2a44" stroke-width="3"/>
+        <path d="M104 207 L120 246 L136 207 Z" fill="#fff"/>
+        <path d="M116 212 h8 l5 34 -9 11 -9 -11 z" fill="#ffd54a" stroke="#1f2a44" stroke-width="2"/>
+        <path d="M104 207 L120 248 L98 232 Z" fill="#22305a"/>
+        <path d="M136 207 L120 248 L142 232 Z" fill="#22305a"/>
+        <rect x="138" y="254" width="20" height="6" rx="2" fill="#fff"/>
+        <g id="A-armF">
+          <line x1="164" y1="282" x2="164" y2="352" stroke="#8a5a2b" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="164" cy="354" r="5" fill="#ff6b57"/>
+          <rect x="152" y="210" width="24" height="66" rx="12" fill="#26345f"/>
+          <circle cx="164" cy="278" r="12" fill="#ffd9b8" stroke="#1f2a44" stroke-width="2"/>
+        </g>
+      </g>
+      <g id="A-head">
+        <rect x="110" y="186" width="20" height="22" fill="#f4c8a4"/>
+        <circle cx="46" cy="128" r="14" fill="#ffd9b8" stroke="#1f2a44" stroke-width="3"/>
+        <circle cx="194" cy="128" r="14" fill="#ffd9b8" stroke="#1f2a44" stroke-width="3"/>
+        <circle cx="120" cy="122" r="76" fill="#ffdcbf" stroke="#1f2a44" stroke-width="3"/>
+        <path d="M42 122 C34 58 80 34 124 34 C170 34 208 62 198 122 C192 96 180 86 164 80 C142 94 98 98 70 86 C58 96 50 106 42 122 Z" fill="#2a2a33" stroke="#1f2a44" stroke-width="3"/>
+        <path d="M150 50 Q170 56 180 74" stroke="#5a5a68" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <g id="A-brows" stroke="#2a2a33" stroke-width="5" stroke-linecap="round" fill="none"><path d="M80 98 Q92 92 104 97"/><path d="M136 97 Q148 92 160 98"/></g>
+        <g id="A-eyes-n"><circle cx="94" cy="123" r="6" fill="#1f2a44"/><circle cx="146" cy="123" r="6" fill="#1f2a44"/><circle cx="96" cy="121" r="2" fill="#fff"/><circle cx="148" cy="121" r="2" fill="#fff"/></g>
+        <g id="A-eyes-h" stroke="#1f2a44" stroke-width="4" fill="none" stroke-linecap="round"><path d="M86 126 Q94 116 102 126"/><path d="M138 126 Q146 116 154 126"/></g>
+        <g id="A-eyes-w"><circle cx="94" cy="123" r="6" fill="#1f2a44"/><circle cx="96" cy="121" r="2" fill="#fff"/><path d="M138 124 Q146 130 154 124" stroke="#1f2a44" stroke-width="4" fill="none" stroke-linecap="round"/></g>
+        <g fill="rgba(255,255,255,.28)" stroke="#1f2a44" stroke-width="4"><rect x="72" y="106" width="44" height="34" rx="13"/><rect x="124" y="106" width="44" height="34" rx="13"/></g>
+        <path d="M116 120 Q120 116 124 120" stroke="#1f2a44" stroke-width="4" fill="none"/>
+        <ellipse cx="80" cy="152" rx="10" ry="6" fill="#ff9e9e" opacity=".55"/>
+        <ellipse cx="160" cy="152" rx="10" ry="6" fill="#ff9e9e" opacity=".55"/>
+        <path id="A-m-c" d="M106 158 Q120 170 134 158" stroke="#7a3b2e" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <g id="A-m-o"><ellipse id="A-m-oe" cx="120" cy="163" rx="12" ry="8" fill="#7a2a2a" stroke="#1f2a44" stroke-width="2"/><ellipse id="A-m-ot" cx="120" cy="167" rx="7" ry="3" fill="#ff7d7d"/></g>
+        <ellipse id="A-m-big" cx="120" cy="164" rx="7" ry="9" fill="#7a2a2a" stroke="#1f2a44" stroke-width="2"/>
+        <g id="A-hat">
+          <ellipse cx="120" cy="62" rx="78" ry="13" fill="#6b4f2e" stroke="#1f2a44" stroke-width="3"/>
+          <path d="M72 62 Q74 14 120 12 Q166 14 168 62 Z" fill="#8a6a3e" stroke="#1f2a44" stroke-width="3"/>
+          <rect x="74" y="44" width="92" height="12" fill="#3b2a18"/>
+          <text x="120" y="38" text-anchor="middle" font-size="14" fill="#ffd54a">AUDIT</text>
+        </g>
+      </g>
+    </svg>
+  </div>
+  <div class="tagname" id="tnA">Allan Lo</div>
+
+  <!-- ============ 角色：助教阿拉蕾（原創造型） ============ -->
+  <div class="char" id="cR">
+    <svg viewBox="0 0 240 340">
+      <ellipse cx="120" cy="333" rx="70" ry="7" fill="rgba(31,42,68,.18)"/>
+      <g id="R-body">
+        <rect x="100" y="284" width="16" height="38" rx="7" fill="#ffe0c8" stroke="#1f2a44" stroke-width="2"/>
+        <rect x="124" y="284" width="16" height="38" rx="7" fill="#ffe0c8" stroke="#1f2a44" stroke-width="2"/>
+        <ellipse cx="106" cy="326" rx="15" ry="7" fill="#e8505b" stroke="#1f2a44" stroke-width="2"/>
+        <ellipse cx="136" cy="326" rx="15" ry="7" fill="#e8505b" stroke="#1f2a44" stroke-width="2"/>
+        <g id="R-armL"><rect x="70" y="212" width="22" height="58" rx="11" fill="#26b08f" stroke="#1f2a44" stroke-width="2"/><circle cx="81" cy="272" r="11" fill="#ffe0c8" stroke="#1f2a44" stroke-width="2"/></g>
+        <g id="R-armR"><rect x="148" y="212" width="22" height="58" rx="11" fill="#26b08f" stroke="#1f2a44" stroke-width="2"/><circle cx="159" cy="272" r="11" fill="#ffe0c8" stroke="#1f2a44" stroke-width="2"/></g>
+        <path d="M74 298 Q76 214 120 206 Q164 214 166 298 Z" fill="#2ec4a0" stroke="#1f2a44" stroke-width="3"/>
+        <path d="M100 208 Q120 228 140 208 Q132 224 120 226 Q108 224 100 208 Z" fill="#fff" stroke="#1f2a44" stroke-width="2"/>
+        <rect x="97" y="248" width="46" height="22" rx="6" fill="#fff" stroke="#1f2a44" stroke-width="2"/>
+        <text x="120" y="264" text-anchor="middle" font-size="13" fill="#1a8f74">助教</text>
+      </g>
+      <g id="R-head">
+        <rect x="111" y="188" width="18" height="22" fill="#f6cdb0"/>
+        <path d="M36 132 C30 62 70 34 120 34 C170 34 210 62 204 132 L206 182 Q190 190 176 180 L64 180 Q50 190 34 182 Z" fill="#5a3a2e" stroke="#1f2a44" stroke-width="3"/>
+        <circle cx="120" cy="128" r="72" fill="#ffe0c8" stroke="#1f2a44" stroke-width="3"/>
+        <path d="M48 114 C52 62 88 46 120 46 C152 46 188 62 192 114 C180 98 172 92 160 94 C152 104 140 106 128 98 C116 108 100 106 92 96 C80 100 62 102 48 114 Z" fill="#5a3a2e" stroke="#1f2a44" stroke-width="3"/>
+        <g transform="translate(160 66) rotate(20)"><rect x="-14" y="-5" width="28" height="10" rx="5" fill="#ff7aa8" stroke="#1f2a44" stroke-width="2"/></g>
+        <circle cx="74" cy="72" r="7" fill="#ffd54a" stroke="#1f2a44" stroke-width="2"/>
+        <path d="M36 128 C34 30 206 30 204 128" stroke="#ff7aa8" stroke-width="7" fill="none"/>
+        <circle cx="38" cy="132" r="13" fill="#ff7aa8" stroke="#1f2a44" stroke-width="2.5"/>
+        <circle cx="202" cy="132" r="13" fill="#ff7aa8" stroke="#1f2a44" stroke-width="2.5"/>
+        <path d="M42 144 Q52 182 88 178" stroke="#555" stroke-width="3" fill="none"/>
+        <circle cx="90" cy="178" r="5" fill="#333"/>
+        <g id="R-brows" stroke="#5a3a2e" stroke-width="4" stroke-linecap="round" fill="none"><path d="M82 100 Q92 96 102 100"/><path d="M138 100 Q148 96 158 100"/></g>
+        <g id="R-eyes-n"><ellipse cx="94" cy="132" rx="7" ry="10" fill="#2a1e3a"/><ellipse cx="146" cy="132" rx="7" ry="10" fill="#2a1e3a"/><circle cx="97" cy="127" r="3" fill="#fff"/><circle cx="149" cy="127" r="3" fill="#fff"/><circle cx="92" cy="137" r="1.5" fill="#fff"/><circle cx="144" cy="137" r="1.5" fill="#fff"/></g>
+        <g id="R-eyes-h" stroke="#2a1e3a" stroke-width="4" fill="none" stroke-linecap="round"><path d="M85 135 Q94 123 103 135"/><path d="M137 135 Q146 123 155 135"/></g>
+        <g id="R-eyes-w"><path d="M85 134 Q94 140 103 134" stroke="#2a1e3a" stroke-width="4" fill="none" stroke-linecap="round"/><ellipse cx="146" cy="132" rx="7" ry="10" fill="#2a1e3a"/><circle cx="149" cy="127" r="3" fill="#fff"/></g>
+        <g fill="rgba(255,255,255,.25)" stroke="#e54b7a" stroke-width="4"><circle cx="94" cy="131" r="22"/><circle cx="146" cy="131" r="22"/></g>
+        <path d="M116 129 Q120 125 124 129" stroke="#e54b7a" stroke-width="4" fill="none"/>
+        <ellipse cx="74" cy="160" rx="9" ry="5.5" fill="#ff8fb1" opacity=".6"/>
+        <ellipse cx="166" cy="160" rx="9" ry="5.5" fill="#ff8fb1" opacity=".6"/>
+        <path id="R-m-c" d="M110 164 Q120 172 130 164" stroke="#a03a4a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <g id="R-m-o"><ellipse id="R-m-oe" cx="120" cy="167" rx="9" ry="7" fill="#9b2c3c" stroke="#1f2a44" stroke-width="2"/><ellipse id="R-m-ot" cx="120" cy="171" rx="5" ry="2.5" fill="#ff8fa0"/></g>
+        <ellipse id="R-m-big" cx="120" cy="168" rx="6" ry="8" fill="#9b2c3c" stroke="#1f2a44" stroke-width="2"/>
+      </g>
+    </svg>
+  </div>
+  <div class="tagname" id="tnR">助教 阿拉蕾</div>
+
+  <div class="emo" id="emoA"></div>
+  <div class="emo" id="emoR"></div>
+  <div class="sub hide" id="sub"><span class="who A" id="subWho">Allan</span><span class="txt" id="subTxt"></span></div>
+
+  <div class="cover" id="cover">
+    <h1>系統與網路安全</h1>
+    <p>ISO 27001:2022 運作流程｜Allan Lo 講師 × 助教阿拉蕾</p>
+    <button id="bStart" type="button">▶ 開始上課</button>
+    <p style="font-size:16px;color:#b9c4dc">約 14 分鐘・建議開啟聲音</p>
+  </div>
+</div>
+</div>
+
+<div class="controls" id="controls">
+  <div class="track" id="track" role="slider" tabindex="0" aria-label="播放進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <div class="rail" id="rail"></div><div class="fill" id="fill"></div><div id="ticks"></div><div class="knob" id="knob"></div>
+  </div>
+  <button id="bPrev" type="button" title="上一段（[）">⏮ 上一段</button>
+  <button id="bPlay" type="button" title="播放 / 暫停（空白鍵）">▶ 播放</button>
+  <button id="bNext" type="button" title="下一段（]）">下一段 ⏭</button>
+  <span class="time" id="time">00:00 / 00:00</span>
+  <span class="spacer"></span>
+  <select id="selScene" aria-label="跳到段落"></select>
+  <select id="selRate" aria-label="播放速度"><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option></select>
+  <button id="bCC" type="button" title="字幕（C）" aria-pressed="true">字幕 開</button>
+  <button id="bFS" type="button" title="全螢幕（F）">全螢幕</button>
+</div>
+<p class="help">快捷鍵：空白鍵 播放/暫停・← → 倒轉/快轉 5 秒・[ ] 上/下一段・F 全螢幕・C 字幕</p>
+</div>
+
+<script src="lesson.js"></script>
+<script>
+(() => {
+  const L = window.LESSON;
+  const $ = (s, r = document) => r.querySelector(s);
+  const RENDER = /[?&]render\b/.test(location.search);
+  if (RENDER) document.body.classList.add('render');
+
+  const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+  const easeOut = p => 1 - Math.pow(1 - p, 3);
+  const easeBack = p => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); };
+  const fmt = s => { s = Math.max(0, Math.floor(s)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+
+  // ---------- 場景準備 ----------
+  const stage = $('#stage');
+  const scenes = L.scenes.map((s, i) => {
+    const el = document.querySelector(`.scene[data-id="${s.id}"]`);
+    const reveals = [...el.querySelectorAll('[data-at]')].map(e => {
+      const at = parseInt(e.dataset.at, 10);
+      const d = parseFloat(e.dataset.d || 0);
+      let t0;
+      if (at < 0 || !s.lines[at]) t0 = s.start + 0.25 + d;
+      else { const ln = s.lines[at]; t0 = ln.start + (e.dataset.p ? parseFloat(e.dataset.p) * (ln.end - ln.start) : 0) + d; }
+      const fx = e.dataset.fx || 'up';
+      let len = 0;
+      if (fx === 'draw' && e.getTotalLength) { len = e.getTotalLength(); e.style.strokeDasharray = len; }
+      return { e, t0, fx, len, last: -1 };
+    });
+    const hls = [...el.querySelectorAll('[data-hl]')].map(e => ({ e, set: new Set(e.dataset.hl.split(',').map(Number)), on: false }));
+    return { ...s, i, el, reveals, hls, ctl: (el.dataset.ctl || '').split(','), note: el.dataset.note || '', vis: false };
+  });
+
+  function applyFx(r, p) {
+    if (p === r.last) return;
+    r.last = p;
+    const st = r.e.style, e = easeOut(p);
+    switch (r.fx) {
+      case 'fade': st.opacity = p; break;
+      case 'up': st.opacity = p; st.transform = `translateY(${(1 - e) * 26}px)`; break;
+      case 'down': st.opacity = p; st.transform = `translateY(${-(1 - e) * 26}px)`; break;
+      case 'left': st.opacity = p; st.transform = `translateX(${-(1 - e) * 50}px)`; break;
+      case 'right': st.opacity = p; st.transform = `translateX(${(1 - e) * 50}px)`; break;
+      case 'pop': st.opacity = clamp(p * 2.5); st.transform = `scale(${0.3 + 0.7 * easeBack(p)})`; break;
+      case 'stamp': st.opacity = clamp(p * 3); st.transform = `scale(${2.3 - 1.3 * easeBack(p)}) rotate(-7deg)`; break;
+      case 'grow': st.opacity = p > 0 ? 1 : 0; st.transform = `scaleX(${e})`; break;
+      case 'draw': st.opacity = p > 0 ? 1 : 0; st.strokeDashoffset = (1 - e) * r.len; break;
+      case 'lift': st.transform = `translate(${e * 30}px, ${-e * 200}px) rotate(${e * 16}deg)`; st.opacity = 1 - e; break;
+    }
+  }
+
+  // ---------- 背景裝飾 ----------
+  const deco = $('#bgdeco');
+  const blobs = Array.from({ length: 9 }, (_, k) => {
+    const i = document.createElement('i');
+    const size = 60 + (k * 37) % 120;
+    i.style.width = i.style.height = size + 'px';
+    deco.appendChild(i);
+    return { i, x: (k * 151) % 1280, y: (k * 97) % 720, sp: 6 + (k % 4) * 3, ph: k };
+  });
+
+  // ---------- 角色 ----------
+  const C = {};
+  for (const w of ['A', 'R']) {
+    C[w] = {
+      body: $(`#${w}-body`), head: $(`#${w}-head`),
+      eyesN: $(`#${w}-eyes-n`), eyesH: $(`#${w}-eyes-h`), eyesW: $(`#${w}-eyes-w`), brows: $(`#${w}-brows`),
+      mC: $(`#${w}-m-c`), mO: $(`#${w}-m-o`), mOE: $(`#${w}-m-oe`), mOT: $(`#${w}-m-ot`), mBig: $(`#${w}-m-big`),
+      emo: $(`#emo${w}`), emoKey: null,
+    };
+  }
+  const A_hat = $('#A-hat'), A_armF = $('#A-armF'), A_armB = $('#A-armB'), R_armL = $('#R-armL'), R_armR = $('#R-armR');
+  const setT = (el, tr) => el.setAttribute('transform', tr);
+  const show = (el, on) => { el.style.display = on ? '' : 'none'; };
+
+  const ICON = {
+    idea: '<svg viewBox="0 0 64 64"><path d="M32 2v6M8 12l5 5M56 12l-5 5M2 32h6M62 32h-6" stroke="#ffb300" stroke-width="4" stroke-linecap="round"/><circle cx="32" cy="30" r="15" fill="#ffd54a" stroke="#1f2a44" stroke-width="3"/><rect x="25" y="44" width="14" height="10" rx="3" fill="#c9d1e0" stroke="#1f2a44" stroke-width="3"/></svg>',
+    think: '<svg viewBox="0 0 64 64"><circle cx="34" cy="28" r="24" fill="#fff" stroke="#1f2a44" stroke-width="3"/><circle cx="12" cy="56" r="5" fill="#fff" stroke="#1f2a44" stroke-width="3"/><text x="34" y="40" text-anchor="middle" font-size="32" font-weight="900" fill="#4472c4" font-family="sans-serif">?</text></svg>',
+    surprised: '<svg viewBox="0 0 64 64"><path d="M32 2 L39 20 L58 14 L46 30 L62 42 L42 42 L40 62 L30 46 L14 58 L18 38 L2 30 L20 24 L14 8 L30 18 Z" fill="#ff6b57" stroke="#1f2a44" stroke-width="3"/><text x="32" y="42" text-anchor="middle" font-size="26" font-weight="900" fill="#fff" font-family="sans-serif">!</text></svg>',
+    oops: '<svg viewBox="0 0 64 64"><path d="M32 6 Q50 32 48 42 A16 16 0 0 1 16 42 Q14 32 32 6 Z" fill="#7cc8ff" stroke="#1f2a44" stroke-width="3"/><path d="M24 40 q2 8 10 8" stroke="#fff" stroke-width="3" fill="none"/></svg>',
+    happy: '<svg viewBox="0 0 64 64"><path d="M22 46 V12 L50 6 V40" stroke="#1f2a44" stroke-width="4" fill="none"/><ellipse cx="16" cy="48" rx="9" ry="7" fill="#ff7aa8" stroke="#1f2a44" stroke-width="3"/><ellipse cx="44" cy="42" rx="9" ry="7" fill="#ff7aa8" stroke="#1f2a44" stroke-width="3"/></svg>',
+    cheer: '<svg viewBox="0 0 64 64"><path d="M22 4 l5 11 12 2 -9 8 2 12 -10 -6 -11 6 2 -12 -9 -8 12 -2z" fill="#ffd54a" stroke="#1f2a44" stroke-width="2.5"/><path d="M46 30 l3.5 7 8 1 -6 5.5 1.5 8 -7 -4 -7 4 1.5 -8 -6 -5.5 8 -1z" fill="#2ec4a0" stroke="#1f2a44" stroke-width="2.5"/></svg>',
+    wink: '<svg viewBox="0 0 64 64"><path d="M32 54 C10 40 6 26 14 18 C22 10 30 16 32 22 C34 16 42 10 50 18 C58 26 54 40 32 54 Z" fill="#ff6b8a" stroke="#1f2a44" stroke-width="3"/></svg>',
+  };
+
+  function charRender(w, t, line, lineIdx, scene) {
+    const c = C[w];
+    const mine = line && line.w === w;
+    const speaking = mine && t >= line.start && t <= line.end;
+    const emo = mine && t <= line.end + 0.4 ? line.e : '';
+    const ph = w === 'A' ? 0 : 1.7;
+
+    // 身體：說話時上下律動、歡呼時跳躍
+    let by = Math.sin(t * 2 + ph) * 1.5;
+    if (speaking) by -= Math.abs(Math.sin(t * 6.2 + ph)) * 4;
+    if (emo === 'cheer' && t - line.start < 2.2) by -= Math.abs(Math.sin((t - line.start) * 7)) * 22;
+    const lean = speaking ? Math.sin(t * 1.3 + ph) * 2 : (line && !mine ? (w === 'A' ? 2.5 : -2.5) : 0);
+    setT(c.body, `translate(0 ${by.toFixed(2)})`);
+    let tilt = speaking ? Math.sin(t * 2.3 + ph) * 3 : lean;
+    if (emo === 'think') tilt = (w === 'A' ? -7 : 7);
+    setT(c.head, `translate(0 ${by.toFixed(2)}) rotate(${tilt.toFixed(2)} 120 196)`);
+
+    // 眼睛：表情＋眨眼
+    const happy = emo === 'happy' || emo === 'cheer';
+    show(c.eyesH, happy); show(c.eyesW, emo === 'wink'); show(c.eyesN, !happy && emo !== 'wink');
+    const period = w === 'A' ? 3.7 : 3.1;
+    const bt = (t + ph) % period;
+    const blink = bt < 0.13 ? 0.1 : 1;
+    const big = emo === 'surprised' ? 1.25 : 1;
+    const ey = w === 'A' ? 123 : 132;
+    const ex = (scene && scene.divider) ? 0 : (w === 'A' ? 2 : -2);
+    setT(c.eyesN, `translate(${ex} ${ey}) scale(${big} ${blink * big}) translate(0 ${-ey})`);
+    setT(c.brows, `translate(0 ${emo === 'surprised' ? -7 : emo === 'think' ? -3 : 0})`);
+
+    // 嘴巴：說話時開合
+    let open = 0;
+    if (speaking) open = 0.25 + 0.75 * Math.abs(Math.sin(t * 12.5 + Math.sin(t * 5.3) * 1.6));
+    const oMouth = emo === 'surprised' || emo === 'oops';
+    show(c.mBig, oMouth && !speaking);
+    show(c.mC, !speaking && !oMouth);
+    show(c.mO, speaking);
+    if (speaking) {
+      const base = w === 'A' ? 163 : 167, ry = 2 + open * (w === 'A' ? 9 : 7);
+      c.mOE.setAttribute('ry', ry.toFixed(2));
+      c.mOE.setAttribute('cy', (base - 3 + ry * 0.5).toFixed(2));
+      c.mOT.setAttribute('cy', (base - 3 + ry * 1.1).toFixed(2));
+      c.mOT.style.display = ry > 5 ? '' : 'none';
+    }
+
+    // 手臂
+    if (w === 'A') {
+      const ang = speaking ? -58 + Math.sin(t * 1.7) * 14 : -18 + Math.sin(t * 1.1) * 2;
+      setT(A_armF, `rotate(${ang.toFixed(2)} 164 216)`);
+      setT(A_armB, `rotate(${(speaking ? 8 + Math.sin(t * 2.1) * 6 : 6).toFixed(2)} 74 216)`);
+    } else {
+      let l = 12, r = -12;
+      if (emo === 'cheer') { l = 150 + Math.sin(t * 10) * 18; r = -150 - Math.sin(t * 10 + 1) * 18; }
+      else if (emo === 'think') { r = -120; }
+      else if (emo === 'idea') { r = -165 + Math.sin(t * 3) * 6; }
+      else if (speaking) { l = 18 + Math.sin(t * 3.1) * 8; r = -40 + Math.sin(t * 2.6) * 18; }
+      setT(R_armL, `rotate(${l.toFixed(2)} 81 216)`);
+      setT(R_armR, `rotate(${r.toFixed(2)} 159 216)`);
+    }
+
+    // 表情圖示
+    const key = emo && ICON[emo] ? emo + '|' + lineIdx : null;
+    if (key !== c.emoKey) { c.emoKey = key; c.emo.innerHTML = key ? ICON[emo] : ''; }
+    if (key) {
+      const k = t - line.start, p = easeBack(clamp(k / 0.35));
+      const fade = clamp((line.end + 0.4 - t) / 0.3);
+      c.emo.style.opacity = Math.min(clamp(k / 0.15), fade);
+      c.emo.style.transform = `translateY(${(Math.sin(t * 3) * 4 + by).toFixed(1)}px) scale(${p.toFixed(3)})`;
+    }
+  }
+
+  // ---------- 主繪製 ----------
+  const sub = $('#sub'), subWho = $('#subWho'), subTxt = $('#subTxt');
+  const note = $('#note'), noteText = $('#noteText');
+  const secEls = [...$('#secs').children], mmEls = [...document.querySelectorAll('.mm')];
+  const confetti = $('#confetti');
+  const conf = Array.from({ length: 46 }, (_, k) => {
+    const i = document.createElement('i');
+    i.style.background = ['#ffd54a', '#2ec4a0', '#ff6b57', '#4472c4', '#ff7aa8'][k % 5];
+    confetti.appendChild(i);
+    return { i, x: (k * 73) % 800, sp: 90 + (k * 37) % 120, rot: (k * 47) % 360, dl: (k % 9) * 0.25 };
+  });
+  let captions = true, lastSi = -1, lastNote = '';
+
+  function sceneAt(t) {
+    for (let i = 0; i < scenes.length; i++) if (t < scenes[i].end) return i;
+    return scenes.length - 1;
+  }
+
+  function renderAt(t) {
+    stage.style.setProperty('--pulse', ((Math.sin(t * 5) + 1) / 2).toFixed(3));
+    for (const b of blobs) b.i.style.transform = `translate(${(b.x + Math.sin(t / b.sp + b.ph) * 40).toFixed(1)}px, ${(b.y + Math.cos(t / (b.sp * 1.3) + b.ph) * 30).toFixed(1)}px)`;
+
+    const si = sceneAt(t), S = scenes[si];
+    // 場景淡入淡出
+    for (const s of scenes) {
+      const fin = s.i === 0 ? 1 : clamp((t - s.start) / 0.5);
+      const fout = s.i === scenes.length - 1 ? 1 : 1 - clamp((t - s.end) / 0.5);
+      const vis = t >= s.start - 0.01 && fout > 0 && fin > 0;
+      s.el.style.display = vis ? 'block' : 'none'; s.vis = vis;
+      if (!vis) continue;
+      const o = Math.min(fin, fout);
+      s.el.style.opacity = o;
+      s.el.style.transform = fin < 1 ? `translateY(${((1 - easeOut(fin)) * 18).toFixed(1)}px)` : '';
+      for (const r of s.reveals) {
+        const p = clamp((t - r.t0) / (r.fx === 'draw' || r.fx === 'lift' ? 0.9 : 0.5));
+        applyFx(r, p);
+      }
+    }
+
+    // 目前台詞
+    let li = -1;
+    for (let k = 0; k < S.lines.length; k++) if (t >= S.lines[k].start - 0.05) li = k;
+    const line = li >= 0 ? S.lines[li] : null;
+    for (const s of scenes) if (s.vis) for (const h of s.hls) {
+      const on = s === S && h.set.has(li) && line && t <= line.end + 0.3;
+      if (on !== h.on) { h.e.classList.toggle('hl', on); h.on = on; }
+    }
+
+    // 字幕
+    const showSub = captions && line && t <= S.end - 0.3;
+    sub.classList.toggle('hide', !showSub);
+    if (showSub && subTxt.dataset.k !== S.id + li) {
+      subTxt.dataset.k = S.id + li;
+      subTxt.textContent = line.t;
+      subWho.textContent = line.w === 'A' ? 'Allan' : '阿拉蕾';
+      subWho.className = 'who ' + line.w;
+    }
+
+    // 頂部章節、地圖、筆記
+    if (si !== lastSi) {
+      lastSi = si;
+      secEls.forEach((e, k) => e.classList.toggle('on', k === S.sec));
+      $('#counter').textContent = String(si + 1).padStart(2, '0') + ' / ' + scenes.length;
+      const all = S.ctl.includes('all');
+      mmEls.forEach(e => e.classList.toggle('on', all || S.ctl.includes(e.dataset.c)));
+    }
+    const nt = t - S.start;
+    const np = clamp((nt - 1.0) / 0.45), nout = 1 - clamp((t - (S.end - 0.35)) / 0.3);
+    if (S.note !== lastNote) { lastNote = S.note; noteText.textContent = S.note; }
+    note.style.opacity = Math.min(clamp(np * 2), nout);
+    note.style.transform = `rotate(2deg) scale(${(0.6 + 0.4 * easeBack(np)).toFixed(3)})`;
+
+    // 稽核帽：第二道菜期間戴上
+    const hatOn = S.sec === 2;
+    const hs = scenes.find(s => s.id === 's12');
+    const hp = hatOn ? (S.id === 's12' ? clamp((t - hs.lines[1].start) / 0.4) : 1) : 0;
+    A_hat.style.display = hp > 0 ? '' : 'none';
+    if (hp > 0) setT(A_hat, `translate(0 ${(-(1 - easeBack(hp)) * 60).toFixed(1)})`);
+
+    // 彩帶
+    if (S.id === 's22') {
+      const t0 = S.lines[3] ? S.lines[3].start : S.start;
+      for (const c of conf) {
+        const k = t - t0 - c.dl;
+        c.i.style.opacity = k > 0 ? 1 : 0;
+        if (k > 0) c.i.style.transform = `translate(${(c.x + Math.sin(k * 2 + c.rot) * 20).toFixed(1)}px, ${(-30 + ((k * c.sp) % 600)).toFixed(1)}px) rotate(${(c.rot + k * 200).toFixed(0)}deg)`;
+      }
+    }
+
+    // 追蹤法放大鏡沿著鏈條移動
+    if (S.id === 's15') {
+      const m = $('#mag'), l1 = S.lines[1];
+      const k = Math.max(0, t - l1.start);
+      const x = 30 + ((Math.sin(k * 0.9 - Math.PI / 2) + 1) / 2) * 640;
+      m.style.left = x.toFixed(1) + 'px';
+    }
+
+    charRender('A', t, line, li, S);
+    charRender('R', t, line, li, S);
+  }
+  window.renderAt = renderAt;
+  window.LESSON_DURATION = L.duration;
+
+  // ---------- 縮放 ----------
+  const vp = $('#viewport');
+  function fit() {
+    if (RENDER) { stage.style.transform = 'none'; return; }
+    const w = vp.clientWidth, h = vp.clientHeight;
+    const s = Math.min(w / 1280, h / 720);
+    stage.style.transform = `translate(${(w - 1280 * s) / 2}px, ${(h - 720 * s) / 2}px) scale(${s})`;
+  }
+  new ResizeObserver(fit).observe(vp);
+  fit();
+
+  if (RENDER) { $('#cover').remove(); renderAt(0); return; }
+
+  // ---------- 播放器 ----------
+  const audio = new Audio('audio/narration.mp3');
+  audio.preload = 'auto';
+  let audioOK = true, playing = false, fakeT = 0, fakeBase = 0, rate = 1;
+  audio.addEventListener('error', () => { audioOK = false; });
+  const now = () => audioOK ? audio.currentTime : (playing ? fakeT + (performance.now() - fakeBase) / 1000 * rate : fakeT);
+  function seek(t) {
+    t = clamp(t, 0, L.duration);
+    if (audioOK) audio.currentTime = t;
+    fakeT = t; fakeBase = performance.now();
+    renderAt(t);
+  }
+  function play() {
+    $('#cover').hidden = true;
+    playing = true; fakeBase = performance.now();
+    if (audioOK) audio.play().catch(() => { audioOK = false; fakeBase = performance.now(); });
+    $('#bPlay').textContent = '⏸ 暫停';
+  }
+  function pause() {
+    fakeT = now(); playing = false;
+    if (audioOK) audio.pause();
+    $('#bPlay').textContent = '▶ 播放';
+  }
+  const toggle = () => playing ? pause() : play();
+  audio.addEventListener('ended', () => { playing = false; $('#bPlay').textContent = '↺ 重播'; });
+
+  // 進度列
+  const rail = $('#rail'), ticks = $('#ticks');
+  const secColor = ['#9aa6bf', '#2ec4a0', '#4472c4', '#ff6b57', '#ffd54a'];
+  scenes.forEach(s => {
+    const sp = document.createElement('span');
+    sp.style.width = ((s.end - s.start) / L.duration * 100) + '%';
+    sp.style.background = secColor[s.sec];
+    rail.appendChild(sp);
+    if (s.i > 0) { const tk = document.createElement('div'); tk.className = 'tick'; tk.style.left = (s.start / L.duration * 100) + '%'; ticks.appendChild(tk); }
+    const o = document.createElement('option'); o.value = s.i; o.textContent = `${String(s.i + 1).padStart(2, '0')}｜${s.title}`; $('#selScene').appendChild(o);
+  });
+  const track = $('#track');
+  const tFromX = x => { const r = track.getBoundingClientRect(); return clamp((x - r.left) / r.width) * L.duration; };
+  let dragging = false;
+  track.addEventListener('pointerdown', e => { dragging = true; track.setPointerCapture(e.pointerId); seek(tFromX(e.clientX)); });
+  track.addEventListener('pointermove', e => { if (dragging) seek(tFromX(e.clientX)); });
+  track.addEventListener('pointerup', () => { dragging = false; });
+
+  const goScene = d => { const si = sceneAt(now() + 0.01); const ti = clamp(si + d, 0, scenes.length - 1); seek(scenes[ti].start + 0.01); };
+  $('#bStart').addEventListener('click', play);
+  $('#bPlay').addEventListener('click', toggle);
+  $('#bPrev').addEventListener('click', () => { const si = sceneAt(now()); seek(now() - scenes[si].start > 2 ? scenes[si].start + 0.01 : scenes[Math.max(0, si - 1)].start + 0.01); });
+  $('#bNext').addEventListener('click', () => goScene(1));
+  $('#selScene').addEventListener('change', e => { seek(scenes[+e.target.value].start + 0.01); if (!playing) play(); });
+  $('#selRate').addEventListener('change', e => { fakeT = now(); fakeBase = performance.now(); rate = +e.target.value; audio.playbackRate = rate; });
+  $('#bCC').addEventListener('click', e => { captions = !captions; e.target.textContent = captions ? '字幕 開' : '字幕 關'; e.target.setAttribute('aria-pressed', captions); });
+  $('#bFS').addEventListener('click', () => { (document.fullscreenElement ? document.exitFullscreen() : vp.requestFullscreen?.())?.catch?.(() => {}); });
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'SELECT') return;
+    if (e.key === ' ' || e.key === 'k') { e.preventDefault(); toggle(); }
+    else if (e.key === 'ArrowRight') seek(now() + 5);
+    else if (e.key === 'ArrowLeft') seek(now() - 5);
+    else if (e.key === ']' || e.key === 'PageDown') goScene(1);
+    else if (e.key === '[' || e.key === 'PageUp') goScene(-1);
+    else if (e.key === 'f' || e.key === 'F') $('#bFS').click();
+    else if (e.key === 'c' || e.key === 'C') $('#bCC').click();
+  });
+
+  // 從網址 #s05 這類錨點直接跳到段落
+  const h = location.hash.replace('#', '');
+  const hs = scenes.find(s => s.id === h);
+  if (hs) seek(hs.start + 0.01);
+
+  function loop() {
+    const t = now();
+    renderAt(t);
+    const pct = t / L.duration * 100;
+    $('#fill').style.width = pct + '%';
+    $('#knob').style.left = pct + '%';
+    track.setAttribute('aria-valuenow', Math.round(pct));
+    $('#time').textContent = `${fmt(t)} / ${fmt(L.duration)}`;
+    const si = sceneAt(t);
+    if ($('#selScene').value != si) $('#selScene').value = si;
+    requestAnimationFrame(loop);
+  }
+  renderAt(0.01);
+  requestAnimationFrame(loop);
+})();
+</script>
