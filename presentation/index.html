@@ -17,6 +17,7 @@
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --page: #12161f; --page-fg: #e7ebf3; --chrome: #1b2130; --chrome-line: #2d3548; --chrome-mute: #9aa6bf; --chrome-accent: #ffd54a; color-scheme: dark } }
 :root[data-theme="dark"] { --page: #12161f; --page-fg: #e7ebf3; --chrome: #1b2130; --chrome-line: #2d3548; --chrome-mute: #9aa6bf; --chrome-accent: #ffd54a; color-scheme: dark }
 html, body { height: 100%; }
+[hidden] { display: none !important; }
 body { background: var(--page); color: var(--page-fg); font-family: var(--f-body); margin: 0; }
 .app { max-width: 1280px; margin: 0 auto; padding-block: 12px; padding-inline: 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; }
 .viewport { position: relative; width: 100%; aspect-ratio: 16 / 9; max-width: 100%; overflow: hidden; border-radius: 14px; background: #0b0f18; box-shadow: 0 8px 30px rgba(0,0,0,.18); }
@@ -1298,6 +1299,7 @@ body.render .controls, body.render .help, body.render .cover { display: none !im
   }
   function play() {
     $('#cover').hidden = true;
+    $('#cover').style.display = 'none';
     playing = true; fakeBase = performance.now();
     if (audioOK) audio.play().catch(() => { audioOK = false; fakeBase = performance.now(); });
     $('#bPlay').textContent = '⏸ 暫停';
