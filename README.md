@@ -28,7 +28,7 @@ Q 版 Allan Lo 講師 × 助教阿拉蕾的雙人動畫課程，以控制屬性�
 
 ## 使用方式
 
-**直接上課**：用瀏覽器開啟 `presentation/index.html`（建議用本機伺服器，例如 `npx serve presentation`），按「開始上課」。
+**直接上課**：用瀏覽器開啟根目錄的 `index.html`（會自動轉到 `presentation/index.html`）（建議用本機伺服器，例如 `npx serve presentation`），按「開始上課」。
 
 快捷鍵：空白鍵 播放/暫停、← → 倒轉/快轉 5 秒、`[` `]` 上/下一段、F 全螢幕、C 字幕。網址加上 `#s14` 這類錨點可直接跳到該段。
 
