@@ -89,18 +89,25 @@ svg [data-at] { transform-box: fill-box; transform-origin: center; }
 .sub .txt { flex: 1; min-width: 0; font-family: var(--f-display); font-weight: 700; font-size: 22px; line-height: 1.36; }
 .sub.hide { visibility: hidden; }
 
-/* 角色 */
-.char { position: absolute; bottom: 0; width: 240px; height: 340px; z-index: 7; }
-.char svg { width: 100%; height: 100%; overflow: visible; }
-#cA { left: 4px; } #cR { left: 1036px; }
-.char g { transform-box: view-box; }
+/* 角色：視訊框＋表情素材 */
+.char { position: absolute; top: 414px; width: 228px; height: 294px; z-index: 7; }
+#cA { left: 12px; } #cR { left: 1040px; }
+.cam { position: absolute; inset: 0; border-radius: 22px; overflow: hidden; border: 3px solid var(--ink); box-shadow: 4px 4px 0 rgba(31,42,68,.35); }
+.A .cam { background: radial-gradient(circle at 50% 35%, #e8eefb 0%, #b9c8ea 100%); }
+.R .cam { background: radial-gradient(circle at 50% 35%, #e3faf3 0%, #a9e6d6 100%); }
+.char.talk .cam { box-shadow: 4px 4px 0 rgba(31,42,68,.35), 0 0 0 calc(3px + 4px * var(--pulse, 0)) rgba(255,213,74,.9); }
+.sprite { position: absolute; left: 0; right: 0; bottom: 0; height: 100%; }
+.sprite img { position: absolute; display: none; max-width: none; }
+.tagname { position: absolute; left: 50%; bottom: -2px; transform: translateX(-50%); z-index: 2; font-family: var(--f-display); font-weight: 900; font-size: 15px; padding: 3px 12px; border-radius: 999px; border: 2px solid var(--ink); background: #fff; white-space: nowrap; }
+.A .tagname { background: var(--navy); color: #fff; } .R .tagname { background: var(--mint); color: #fff; }
+.badge { position: absolute; right: -10px; top: -12px; z-index: 3; font-family: var(--f-display); font-weight: 900; font-size: 14px; padding: 3px 10px; border-radius: 8px; background: var(--sun); border: 2px solid var(--ink); transform: rotate(6deg); display: none; }
 .emo { position: absolute; width: 64px; height: 64px; z-index: 9; pointer-events: none; }
-#emoA { left: 168px; top: 372px; } #emoR { left: 1046px; top: 372px; }
-.tagname { position: absolute; bottom: 4px; z-index: 9; font-family: var(--f-display); font-weight: 900; font-size: 14px; padding: 3px 10px; border-radius: 999px; border: 2px solid var(--ink); background: #fff; }
-#tnA { left: 76px; } #tnR { left: 1104px; }
+#emoA { left: 178px; top: 384px; } #emoR { left: 1034px; top: 384px; }
+.fullbody { height: 100%; width: auto; max-width: none; filter: drop-shadow(3px 4px 0 rgba(0,0,0,.25)); }
 
 /* 開始畫面 */
 .cover { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: rgba(20,27,44,.72); color: #fff; text-align: center; }
+.cover .cv { position: absolute; bottom: 30px; height: 470px; }
 .cover h1 { margin: 0; font-family: var(--f-display); font-weight: 900; font-size: 54px; letter-spacing: .04em; }
 .cover p { margin: 0; font-size: 22px; color: #dfe6f5; }
 .cover button { font-family: var(--f-display); font-weight: 900; font-size: 30px; padding: 16px 44px; border-radius: 999px; border: 4px solid #fff; background: var(--sun); color: var(--ink); cursor: pointer; box-shadow: 6px 6px 0 rgba(0,0,0,.35); }
@@ -159,8 +166,8 @@ body.render .controls, body.render .help, body.render .cover { display: none !im
       <div style="font-family:var(--f-display);font-weight:900;font-size:64px;letter-spacing:.06em;line-height:1.1" data-at="-1" data-fx="pop" data-d="0.3">系統與網路安全</div>
       <div style="font-family:var(--f-display);font-weight:700;font-size:22px;color:var(--mute)" data-at="-1" data-fx="up" data-d="0.6">#System_and_network_security</div>
       <div class="row" style="gap:16px">
-        <div class="chk" style="background:#e6ecfa" data-at="0" data-fx="left" data-p="0.25"><i style="background:var(--navy)">A</i><div style="text-align:left"><b>Allan Lo 講師</b><small>ISMS / PIMS 輔導顧問・驗證公司稽核員</small></div></div>
-        <div class="chk" style="background:#dcf7ef" data-at="1" data-fx="right" data-p="0.1"><i>R</i><div style="text-align:left"><b>助教 阿拉蕾</b><small>負責發問、吐槽、做筆記</small></div></div>
+        <div class="chk" style="background:#e6ecfa" data-at="0" data-fx="left" data-p="0.25"><span class="av A"><img src="img/allan_smile.webp" alt=""></span><div style="text-align:left"><b>Allan Lo 講師</b><small>ISMS / PIMS 輔導顧問・驗證公司稽核員</small></div></div>
+        <div class="chk" style="background:#dcf7ef" data-at="1" data-fx="right" data-p="0.1"><span class="av R"><img src="img/arale_m0.webp" alt=""></span><div style="text-align:left"><b>助教 阿拉蕾</b><small>負責發問、吐槽、做筆記</small></div></div>
       </div>
       <div class="row" style="gap:16px;margin-top:6px">
         <div class="dish" data-at="4" data-fx="pop" data-p="0.12"><i>1</i><b>ISMS 作業重點</b><span>該做什麼、留什麼紀錄</span></div>
@@ -170,6 +177,10 @@ body.render .controls, body.render .help, body.render .cover { display: none !im
     </div>
   </section>
   <style>
+    .av { flex: none; width: 54px; height: 54px; border-radius: 50%; overflow: hidden; border: 2px solid var(--ink); position: relative; background: #fff; }
+    .av img { position: absolute; max-width: none; }
+    .av.A img { width: 70px; left: -8px; top: -4px; }
+    .av.R img { width: 84px; left: -30px; top: -6px; }
     .dish { width: 220px; background: #fff; border: 3px solid var(--ink); border-radius: 18px; padding: 12px; box-shadow: 4px 4px 0 var(--ink); display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .dish i { font-style: normal; font-family: var(--f-display); font-weight: 900; font-size: 22px; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--sun); border: 3px solid var(--ink); }
     .dish b { font-family: var(--f-display); font-size: 22px; }
@@ -876,7 +887,11 @@ body.render .controls, body.render .help, body.render .cover { display: none !im
         <div class="tk" data-at="1" data-fx="pop" data-p="0.1" data-hl="1"><em>稽核面</em><b>文件・紀錄・現場，<br>追蹤法找出<br>斷掉的那一環</b></div>
         <div class="tk" data-at="2" data-fx="pop" data-p="0.1" data-hl="2"><em>缺失面</em><b>不要只修正，<br>找到根本原因</b></div>
       </div>
-      <div class="bye" data-at="3" data-fx="pop" data-p="0.2">下課囉！下堂課見～</div>
+      <div class="row" style="align-items:flex-end;justify-content:center;gap:22px;margin-top:4px">
+        <img class="fullbody" style="height:196px" src="img/allan_full.webp" alt="" data-at="3" data-fx="left" data-p="0.05">
+        <div class="bye" style="margin-bottom:40px" data-at="3" data-fx="pop" data-p="0.2">下課囉！下堂課見～</div>
+        <img class="fullbody" style="height:196px" src="img/arale_full.webp" alt="" data-at="3" data-fx="right" data-p="0.05">
+      </div>
       <div class="confetti" id="confetti"></div>
     </div>
   </section>
@@ -884,112 +899,22 @@ body.render .controls, body.render .help, body.render .cover { display: none !im
     .tk { flex: 1; background: #fff; border: 3px solid var(--ink); border-radius: 18px; padding: 18px 14px; display: flex; flex-direction: column; gap: 10px; text-align: center; box-shadow: 5px 5px 0 rgba(31,42,68,.2); }
     .tk em { font-style: normal; align-self: center; font-family: var(--f-display); font-weight: 900; font-size: 18px; background: var(--ink); color: var(--sun); padding: 3px 14px; border-radius: 999px; }
     .tk b { font-family: var(--f-display); font-size: 22px; line-height: 1.5; }
-    .bye { align-self: center; margin-top: 14px; font-family: var(--f-display); font-weight: 900; font-size: 40px; background: var(--sun); border: 4px solid var(--ink); border-radius: 999px; padding: 10px 36px; box-shadow: 6px 6px 0 var(--ink); }
+    .bye { align-self: center; font-family: var(--f-display); font-weight: 900; font-size: 40px; background: var(--sun); border: 4px solid var(--ink); border-radius: 999px; padding: 10px 36px; box-shadow: 6px 6px 0 var(--ink); }
     .confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
     .confetti i { position: absolute; width: 10px; height: 16px; border-radius: 2px; }
   </style>
 
-  <!-- ============ 角色：Allan Lo ============ -->
-  <div class="char" id="cA">
-    <svg viewBox="0 0 240 340">
-      <ellipse cx="120" cy="333" rx="78" ry="7" fill="rgba(31,42,68,.18)"/>
-      <g id="A-body">
-        <rect x="96" y="284" width="20" height="42" rx="8" fill="#3a3f55"/>
-        <rect x="124" y="284" width="20" height="42" rx="8" fill="#3a3f55"/>
-        <ellipse cx="104" cy="327" rx="17" ry="7" fill="#1d1f2b"/>
-        <ellipse cx="138" cy="327" rx="17" ry="7" fill="#1d1f2b"/>
-        <g id="A-armB"><rect x="62" y="212" width="24" height="66" rx="12" fill="#26345f"/><circle cx="74" cy="280" r="12" fill="#ffd9b8" stroke="#1f2a44" stroke-width="2"/></g>
-        <path d="M70 296 Q66 214 120 204 Q174 214 170 296 Z" fill="#2b3a67" stroke="#1f2a44" stroke-width="3"/>
-        <path d="M104 207 L120 246 L136 207 Z" fill="#fff"/>
-        <path d="M116 212 h8 l5 34 -9 11 -9 -11 z" fill="#ffd54a" stroke="#1f2a44" stroke-width="2"/>
-        <path d="M104 207 L120 248 L98 232 Z" fill="#22305a"/>
-        <path d="M136 207 L120 248 L142 232 Z" fill="#22305a"/>
-        <rect x="138" y="254" width="20" height="6" rx="2" fill="#fff"/>
-        <g id="A-armF">
-          <line x1="164" y1="282" x2="164" y2="352" stroke="#8a5a2b" stroke-width="5" stroke-linecap="round"/>
-          <circle cx="164" cy="354" r="5" fill="#ff6b57"/>
-          <rect x="152" y="210" width="24" height="66" rx="12" fill="#26345f"/>
-          <circle cx="164" cy="278" r="12" fill="#ffd9b8" stroke="#1f2a44" stroke-width="2"/>
-        </g>
-      </g>
-      <g id="A-head">
-        <rect x="110" y="186" width="20" height="22" fill="#f4c8a4"/>
-        <circle cx="46" cy="128" r="14" fill="#ffd9b8" stroke="#1f2a44" stroke-width="3"/>
-        <circle cx="194" cy="128" r="14" fill="#ffd9b8" stroke="#1f2a44" stroke-width="3"/>
-        <circle cx="120" cy="122" r="76" fill="#ffdcbf" stroke="#1f2a44" stroke-width="3"/>
-        <path d="M42 122 C34 58 80 34 124 34 C170 34 208 62 198 122 C192 96 180 86 164 80 C142 94 98 98 70 86 C58 96 50 106 42 122 Z" fill="#2a2a33" stroke="#1f2a44" stroke-width="3"/>
-        <path d="M150 50 Q170 56 180 74" stroke="#5a5a68" stroke-width="4" fill="none" stroke-linecap="round"/>
-        <g id="A-brows" stroke="#2a2a33" stroke-width="5" stroke-linecap="round" fill="none"><path d="M80 98 Q92 92 104 97"/><path d="M136 97 Q148 92 160 98"/></g>
-        <g id="A-eyes-n"><circle cx="94" cy="123" r="6" fill="#1f2a44"/><circle cx="146" cy="123" r="6" fill="#1f2a44"/><circle cx="96" cy="121" r="2" fill="#fff"/><circle cx="148" cy="121" r="2" fill="#fff"/></g>
-        <g id="A-eyes-h" stroke="#1f2a44" stroke-width="4" fill="none" stroke-linecap="round"><path d="M86 126 Q94 116 102 126"/><path d="M138 126 Q146 116 154 126"/></g>
-        <g id="A-eyes-w"><circle cx="94" cy="123" r="6" fill="#1f2a44"/><circle cx="96" cy="121" r="2" fill="#fff"/><path d="M138 124 Q146 130 154 124" stroke="#1f2a44" stroke-width="4" fill="none" stroke-linecap="round"/></g>
-        <g fill="rgba(255,255,255,.28)" stroke="#1f2a44" stroke-width="4"><rect x="72" y="106" width="44" height="34" rx="13"/><rect x="124" y="106" width="44" height="34" rx="13"/></g>
-        <path d="M116 120 Q120 116 124 120" stroke="#1f2a44" stroke-width="4" fill="none"/>
-        <ellipse cx="80" cy="152" rx="10" ry="6" fill="#ff9e9e" opacity=".55"/>
-        <ellipse cx="160" cy="152" rx="10" ry="6" fill="#ff9e9e" opacity=".55"/>
-        <path id="A-m-c" d="M106 158 Q120 170 134 158" stroke="#7a3b2e" stroke-width="4" fill="none" stroke-linecap="round"/>
-        <g id="A-m-o"><ellipse id="A-m-oe" cx="120" cy="163" rx="12" ry="8" fill="#7a2a2a" stroke="#1f2a44" stroke-width="2"/><ellipse id="A-m-ot" cx="120" cy="167" rx="7" ry="3" fill="#ff7d7d"/></g>
-        <ellipse id="A-m-big" cx="120" cy="164" rx="7" ry="9" fill="#7a2a2a" stroke="#1f2a44" stroke-width="2"/>
-        <g id="A-hat">
-          <ellipse cx="120" cy="62" rx="78" ry="13" fill="#6b4f2e" stroke="#1f2a44" stroke-width="3"/>
-          <path d="M72 62 Q74 14 120 12 Q166 14 168 62 Z" fill="#8a6a3e" stroke="#1f2a44" stroke-width="3"/>
-          <rect x="74" y="44" width="92" height="12" fill="#3b2a18"/>
-          <text x="120" y="38" text-anchor="middle" font-size="14" fill="#ffd54a">AUDIT</text>
-        </g>
-      </g>
-    </svg>
-  </div>
-  <div class="tagname" id="tnA">Allan Lo</div>
-
-  <!-- ============ 角色：助教阿拉蕾（原創造型） ============ -->
-  <div class="char" id="cR">
-    <svg viewBox="0 0 240 340">
-      <ellipse cx="120" cy="333" rx="70" ry="7" fill="rgba(31,42,68,.18)"/>
-      <g id="R-body">
-        <rect x="100" y="284" width="16" height="38" rx="7" fill="#ffe0c8" stroke="#1f2a44" stroke-width="2"/>
-        <rect x="124" y="284" width="16" height="38" rx="7" fill="#ffe0c8" stroke="#1f2a44" stroke-width="2"/>
-        <ellipse cx="106" cy="326" rx="15" ry="7" fill="#e8505b" stroke="#1f2a44" stroke-width="2"/>
-        <ellipse cx="136" cy="326" rx="15" ry="7" fill="#e8505b" stroke="#1f2a44" stroke-width="2"/>
-        <g id="R-armL"><rect x="70" y="212" width="22" height="58" rx="11" fill="#26b08f" stroke="#1f2a44" stroke-width="2"/><circle cx="81" cy="272" r="11" fill="#ffe0c8" stroke="#1f2a44" stroke-width="2"/></g>
-        <g id="R-armR"><rect x="148" y="212" width="22" height="58" rx="11" fill="#26b08f" stroke="#1f2a44" stroke-width="2"/><circle cx="159" cy="272" r="11" fill="#ffe0c8" stroke="#1f2a44" stroke-width="2"/></g>
-        <path d="M74 298 Q76 214 120 206 Q164 214 166 298 Z" fill="#2ec4a0" stroke="#1f2a44" stroke-width="3"/>
-        <path d="M100 208 Q120 228 140 208 Q132 224 120 226 Q108 224 100 208 Z" fill="#fff" stroke="#1f2a44" stroke-width="2"/>
-        <rect x="97" y="248" width="46" height="22" rx="6" fill="#fff" stroke="#1f2a44" stroke-width="2"/>
-        <text x="120" y="264" text-anchor="middle" font-size="13" fill="#1a8f74">助教</text>
-      </g>
-      <g id="R-head">
-        <rect x="111" y="188" width="18" height="22" fill="#f6cdb0"/>
-        <path d="M36 132 C30 62 70 34 120 34 C170 34 210 62 204 132 L206 182 Q190 190 176 180 L64 180 Q50 190 34 182 Z" fill="#5a3a2e" stroke="#1f2a44" stroke-width="3"/>
-        <circle cx="120" cy="128" r="72" fill="#ffe0c8" stroke="#1f2a44" stroke-width="3"/>
-        <path d="M48 114 C52 62 88 46 120 46 C152 46 188 62 192 114 C180 98 172 92 160 94 C152 104 140 106 128 98 C116 108 100 106 92 96 C80 100 62 102 48 114 Z" fill="#5a3a2e" stroke="#1f2a44" stroke-width="3"/>
-        <g transform="translate(160 66) rotate(20)"><rect x="-14" y="-5" width="28" height="10" rx="5" fill="#ff7aa8" stroke="#1f2a44" stroke-width="2"/></g>
-        <circle cx="74" cy="72" r="7" fill="#ffd54a" stroke="#1f2a44" stroke-width="2"/>
-        <path d="M36 128 C34 30 206 30 204 128" stroke="#ff7aa8" stroke-width="7" fill="none"/>
-        <circle cx="38" cy="132" r="13" fill="#ff7aa8" stroke="#1f2a44" stroke-width="2.5"/>
-        <circle cx="202" cy="132" r="13" fill="#ff7aa8" stroke="#1f2a44" stroke-width="2.5"/>
-        <path d="M42 144 Q52 182 88 178" stroke="#555" stroke-width="3" fill="none"/>
-        <circle cx="90" cy="178" r="5" fill="#333"/>
-        <g id="R-brows" stroke="#5a3a2e" stroke-width="4" stroke-linecap="round" fill="none"><path d="M82 100 Q92 96 102 100"/><path d="M138 100 Q148 96 158 100"/></g>
-        <g id="R-eyes-n"><ellipse cx="94" cy="132" rx="7" ry="10" fill="#2a1e3a"/><ellipse cx="146" cy="132" rx="7" ry="10" fill="#2a1e3a"/><circle cx="97" cy="127" r="3" fill="#fff"/><circle cx="149" cy="127" r="3" fill="#fff"/><circle cx="92" cy="137" r="1.5" fill="#fff"/><circle cx="144" cy="137" r="1.5" fill="#fff"/></g>
-        <g id="R-eyes-h" stroke="#2a1e3a" stroke-width="4" fill="none" stroke-linecap="round"><path d="M85 135 Q94 123 103 135"/><path d="M137 135 Q146 123 155 135"/></g>
-        <g id="R-eyes-w"><path d="M85 134 Q94 140 103 134" stroke="#2a1e3a" stroke-width="4" fill="none" stroke-linecap="round"/><ellipse cx="146" cy="132" rx="7" ry="10" fill="#2a1e3a"/><circle cx="149" cy="127" r="3" fill="#fff"/></g>
-        <g fill="rgba(255,255,255,.25)" stroke="#e54b7a" stroke-width="4"><circle cx="94" cy="131" r="22"/><circle cx="146" cy="131" r="22"/></g>
-        <path d="M116 129 Q120 125 124 129" stroke="#e54b7a" stroke-width="4" fill="none"/>
-        <ellipse cx="74" cy="160" rx="9" ry="5.5" fill="#ff8fb1" opacity=".6"/>
-        <ellipse cx="166" cy="160" rx="9" ry="5.5" fill="#ff8fb1" opacity=".6"/>
-        <path id="R-m-c" d="M110 164 Q120 172 130 164" stroke="#a03a4a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-        <g id="R-m-o"><ellipse id="R-m-oe" cx="120" cy="167" rx="9" ry="7" fill="#9b2c3c" stroke="#1f2a44" stroke-width="2"/><ellipse id="R-m-ot" cx="120" cy="171" rx="5" ry="2.5" fill="#ff8fa0"/></g>
-        <ellipse id="R-m-big" cx="120" cy="168" rx="6" ry="8" fill="#9b2c3c" stroke="#1f2a44" stroke-width="2"/>
-      </g>
-    </svg>
-  </div>
-  <div class="tagname" id="tnR">助教 阿拉蕾</div>
+  <!-- ============ 角色（素材來自 assets/characters 角色設定圖） ============ -->
+  <div class="char A" id="cA"><div class="cam"><div class="sprite" id="sprA"></div></div><div class="badge" id="auditBadge">稽核員模式</div><div class="tagname">Allan Lo 講師</div></div>
+  <div class="char R" id="cR"><div class="cam"><div class="sprite" id="sprR"></div></div><div class="tagname">助教 阿拉蕾</div></div>
 
   <div class="emo" id="emoA"></div>
   <div class="emo" id="emoR"></div>
   <div class="sub hide" id="sub"><span class="who A" id="subWho">Allan</span><span class="txt" id="subTxt"></span></div>
 
   <div class="cover" id="cover">
+    <img class="fullbody cv" style="left:120px" src="img/allan_full.webp" alt="Allan Lo 講師">
+    <img class="fullbody cv" style="right:130px" src="img/arale_full.webp" alt="助教阿拉蕾">
     <h1>系統與網路安全</h1>
     <p>ISO 27001:2022 運作流程｜Allan Lo 講師 × 助教阿拉蕾</p>
     <button id="bStart" type="button">▶ 開始上課</button>
@@ -1016,6 +941,7 @@ body.render .controls, body.render .help, body.render .cover { display: none !im
 </div>
 
 <script src="lesson.js"></script>
+<script src="img/sprites.js"></script>
 <script>
 (() => {
   const L = window.LESSON;
@@ -1075,19 +1001,34 @@ body.render .controls, body.render .help, body.render .cover { display: none !im
     return { i, x: (k * 151) % 1280, y: (k * 97) % 720, sp: 6 + (k % 4) * 3, ph: k };
   });
 
-  // ---------- 角色 ----------
+  // ---------- 角色（表情素材） ----------
+  const SP = window.SPRITES || {};
+  const CH = {
+    A: { pre: 'allan', scale: 0.86, dx: {}, talk: ['smile', 'm1', 'm2'], idle: 'smile',
+         map: { happy: 'laugh', cheer: 'laugh', think: 'think', idea: 'idea', surprised: 'surprised', oops: 'oops', wink: 'wink' } },
+    R: { pre: 'arale', scale: 0.83, dx: { talk: -28, m0: -28, m1: -28, oops: 14 }, talk: ['m0', 'm1', 'talk'], idle: 'm0',
+         map: { happy: 'happy', cheer: 'cheer', think: 'think', idea: 'cheer', surprised: 'surprised', oops: 'oops', wink: 'wink' } },
+  };
   const C = {};
   for (const w of ['A', 'R']) {
-    C[w] = {
-      body: $(`#${w}-body`), head: $(`#${w}-head`),
-      eyesN: $(`#${w}-eyes-n`), eyesH: $(`#${w}-eyes-h`), eyesW: $(`#${w}-eyes-w`), brows: $(`#${w}-brows`),
-      mC: $(`#${w}-m-c`), mO: $(`#${w}-m-o`), mOE: $(`#${w}-m-oe`), mOT: $(`#${w}-m-ot`), mBig: $(`#${w}-m-big`),
-      emo: $(`#emo${w}`), emoKey: null,
-    };
+    const cfg = CH[w], box = $(`#spr${w}`), imgs = {};
+    const names = new Set([...cfg.talk, cfg.idle, ...Object.values(cfg.map)]);
+    for (const n of names) {
+      const m = SP[`${cfg.pre}_${n}`]; if (!m) continue;
+      const im = new Image();
+      im.src = `img/${cfg.pre}_${n}.webp`; im.alt = '';
+      im.style.width = (m.w * cfg.scale).toFixed(1) + 'px';
+      im.style.left = `calc(50% + ${((m.x - m.bw / 2) * cfg.scale + (cfg.dx[n] || 0)).toFixed(1)}px)`;
+      im.style.bottom = ((m.bh - m.y - m.h) * cfg.scale - 4).toFixed(1) + 'px';
+      box.appendChild(im); imgs[n] = im;
+    }
+    C[w] = { cfg, box, imgs, cur: null, root: $(`#c${w}`), emo: $(`#emo${w}`), emoKey: null, talking: null };
   }
-  const A_hat = $('#A-hat'), A_armF = $('#A-armF'), A_armB = $('#A-armB'), R_armL = $('#R-armL'), R_armR = $('#R-armR');
-  const setT = (el, tr) => el.setAttribute('transform', tr);
-  const show = (el, on) => { el.style.display = on ? '' : 'none'; };
+  function showSprite(c, n) {
+    if (c.cur === n || !c.imgs[n]) return;
+    if (c.cur) c.imgs[c.cur].style.display = 'none';
+    c.imgs[n].style.display = 'block'; c.cur = n;
+  }
 
   const ICON = {
     idea: '<svg viewBox="0 0 64 64"><path d="M32 2v6M8 12l5 5M56 12l-5 5M2 32h6M62 32h-6" stroke="#ffb300" stroke-width="4" stroke-linecap="round"/><circle cx="32" cy="30" r="15" fill="#ffd54a" stroke="#1f2a44" stroke-width="3"/><rect x="25" y="44" width="14" height="10" rx="3" fill="#c9d1e0" stroke="#1f2a44" stroke-width="3"/></svg>',
@@ -1100,63 +1041,31 @@ body.render .controls, body.render .help, body.render .cover { display: none !im
   };
 
   function charRender(w, t, line, lineIdx, scene) {
-    const c = C[w];
+    const c = C[w], cfg = c.cfg;
     const mine = line && line.w === w;
     const speaking = mine && t >= line.start && t <= line.end;
     const emo = mine && t <= line.end + 0.4 ? line.e : '';
     const ph = w === 'A' ? 0 : 1.7;
 
-    // 身體：說話時上下律動、歡呼時跳躍
-    let by = Math.sin(t * 2 + ph) * 1.5;
-    if (speaking) by -= Math.abs(Math.sin(t * 6.2 + ph)) * 4;
-    if (emo === 'cheer' && t - line.start < 2.2) by -= Math.abs(Math.sin((t - line.start) * 7)) * 22;
-    const lean = speaking ? Math.sin(t * 1.3 + ph) * 2 : (line && !mine ? (w === 'A' ? 2.5 : -2.5) : 0);
-    setT(c.body, `translate(0 ${by.toFixed(2)})`);
-    let tilt = speaking ? Math.sin(t * 2.3 + ph) * 3 : lean;
-    if (emo === 'think') tilt = (w === 'A' ? -7 : 7);
-    setT(c.head, `translate(0 ${by.toFixed(2)}) rotate(${tilt.toFixed(2)} 120 196)`);
-
-    // 眼睛：表情＋眨眼
-    const happy = emo === 'happy' || emo === 'cheer';
-    show(c.eyesH, happy); show(c.eyesW, emo === 'wink'); show(c.eyesN, !happy && emo !== 'wink');
-    const period = w === 'A' ? 3.7 : 3.1;
-    const bt = (t + ph) % period;
-    const blink = bt < 0.13 ? 0.1 : 1;
-    const big = emo === 'surprised' ? 1.25 : 1;
-    const ey = w === 'A' ? 123 : 132;
-    const ex = (scene && scene.divider) ? 0 : (w === 'A' ? 2 : -2);
-    setT(c.eyesN, `translate(${ex} ${ey}) scale(${big} ${blink * big}) translate(0 ${-ey})`);
-    setT(c.brows, `translate(0 ${emo === 'surprised' ? -7 : emo === 'think' ? -3 : 0})`);
-
-    // 嘴巴：說話時開合
-    let open = 0;
-    if (speaking) open = 0.25 + 0.75 * Math.abs(Math.sin(t * 12.5 + Math.sin(t * 5.3) * 1.6));
-    const oMouth = emo === 'surprised' || emo === 'oops';
-    show(c.mBig, oMouth && !speaking);
-    show(c.mC, !speaking && !oMouth);
-    show(c.mO, speaking);
-    if (speaking) {
-      const base = w === 'A' ? 163 : 167, ry = 2 + open * (w === 'A' ? 9 : 7);
-      c.mOE.setAttribute('ry', ry.toFixed(2));
-      c.mOE.setAttribute('cy', (base - 3 + ry * 0.5).toFixed(2));
-      c.mOT.setAttribute('cy', (base - 3 + ry * 1.1).toFixed(2));
-      c.mOT.style.display = ry > 5 ? '' : 'none';
+    // 表情：有表情的句子先秀表情，長句子之後回到說話嘴型
+    const dur = mine ? line.end - line.start : 0;
+    const hold = dur < 3 ? dur + 0.4 : 1.9;
+    let frame = cfg.idle;
+    if (emo && t - line.start < hold) frame = cfg.map[emo] || cfg.idle;
+    else if (speaking) {
+      const v = Math.abs(Math.sin(t * 11 + Math.sin(t * 4.7) * 1.6));
+      frame = cfg.talk[v < 0.33 ? 0 : v < 0.7 ? 1 : 2];
     }
+    showSprite(c, frame);
 
-    // 手臂
-    if (w === 'A') {
-      const ang = speaking ? -58 + Math.sin(t * 1.7) * 14 : -18 + Math.sin(t * 1.1) * 2;
-      setT(A_armF, `rotate(${ang.toFixed(2)} 164 216)`);
-      setT(A_armB, `rotate(${(speaking ? 8 + Math.sin(t * 2.1) * 6 : 6).toFixed(2)} 74 216)`);
-    } else {
-      let l = 12, r = -12;
-      if (emo === 'cheer') { l = 150 + Math.sin(t * 10) * 18; r = -150 - Math.sin(t * 10 + 1) * 18; }
-      else if (emo === 'think') { r = -120; }
-      else if (emo === 'idea') { r = -165 + Math.sin(t * 3) * 6; }
-      else if (speaking) { l = 18 + Math.sin(t * 3.1) * 8; r = -40 + Math.sin(t * 2.6) * 18; }
-      setT(R_armL, `rotate(${l.toFixed(2)} 81 216)`);
-      setT(R_armR, `rotate(${r.toFixed(2)} 159 216)`);
-    }
+    // 動作：呼吸、說話律動、歡呼跳躍、思考時歪頭
+    let by = Math.sin(t * 2 + ph) * 1.5, rot = 0, sc = 1;
+    if (speaking) { by -= Math.abs(Math.sin(t * 6.2 + ph)) * 4; rot = Math.sin(t * 2.3 + ph) * 1.6; }
+    if (emo === 'cheer' && t - line.start < 2.2) by -= Math.abs(Math.sin((t - line.start) * 7)) * 18;
+    if (emo === 'surprised' && t - line.start < 0.5) sc = 1 + 0.08 * Math.sin((t - line.start) / 0.5 * Math.PI);
+    if (emo === 'think') rot = w === 'A' ? -3 : 3;
+    c.box.style.transform = `translateY(${by.toFixed(2)}px) rotate(${rot.toFixed(2)}deg) scale(${sc.toFixed(3)})`;
+    if (speaking !== c.talking) { c.root.classList.toggle('talk', !!speaking); c.talking = speaking; }
 
     // 表情圖示
     const key = emo && ICON[emo] ? emo + '|' + lineIdx : null;
@@ -1172,6 +1081,7 @@ body.render .controls, body.render .help, body.render .cover { display: none !im
   // ---------- 主繪製 ----------
   const sub = $('#sub'), subWho = $('#subWho'), subTxt = $('#subTxt');
   const note = $('#note'), noteText = $('#noteText');
+  const auditBadge = $('#auditBadge');
   const secEls = [...$('#secs').children], mmEls = [...document.querySelectorAll('.mm')];
   const confetti = $('#confetti');
   const conf = Array.from({ length: 46 }, (_, k) => {
@@ -1241,12 +1151,11 @@ body.render .controls, body.render .help, body.render .cover { display: none !im
     note.style.opacity = Math.min(clamp(np * 2), nout);
     note.style.transform = `rotate(2deg) scale(${(0.6 + 0.4 * easeBack(np)).toFixed(3)})`;
 
-    // 稽核帽：第二道菜期間戴上
-    const hatOn = S.sec === 2;
+    // 稽核員模式：第二道菜期間在講師框上貼標籤
     const hs = scenes.find(s => s.id === 's12');
-    const hp = hatOn ? (S.id === 's12' ? clamp((t - hs.lines[1].start) / 0.4) : 1) : 0;
-    A_hat.style.display = hp > 0 ? '' : 'none';
-    if (hp > 0) setT(A_hat, `translate(0 ${(-(1 - easeBack(hp)) * 60).toFixed(1)})`);
+    const hp = S.sec === 2 ? (S.id === 's12' ? clamp((t - hs.lines[1].start) / 0.4) : 1) : 0;
+    auditBadge.style.display = hp > 0 ? 'block' : 'none';
+    if (hp > 0) auditBadge.style.transform = `rotate(6deg) scale(${(0.3 + 0.7 * easeBack(hp)).toFixed(3)})`;
 
     // 彩帶
     if (S.id === 's22') {

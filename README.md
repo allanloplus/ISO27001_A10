@@ -25,6 +25,9 @@ Q 版 Allan Lo 講師 × 助教阿拉蕾的雙人動畫課程，以控制屬性�
 | `docs/講稿.md` | 逐字稿（含各段落起始時間） |
 | `tools/build_audio.py` | 講稿 → 語音、時間軸、逐字稿 |
 | `tools/render_video.cjs` | 播放器 → MP4 |
+| `assets/characters/` | 講師與助教的角色設定圖（原始素材） |
+| `presentation/img/` | 由設定圖裁切的表情與全身圖（去背 WebP）、`sprites.js` 對位資料 |
+| `tools/extract_characters.py` | 設定圖 → 表情素材、說話嘴型 |
 
 ## 使用方式
 
@@ -50,5 +53,5 @@ node tools/render_video.cjs --shots 30,120,400   # 只截圖檢查版面（build
 ## 說明
 
 - 管理案例為「改編自輔導實務常見狀況」的教學情境，非特定組織的真實事件；NCR 範例中的設備、日期、規則編號皆為示意。
-- 助教「阿拉蕾」為原創 Q 版造型（耳機麥克風、大圓眼鏡、薄荷綠制服），未沿用既有漫畫角色的設計，可放心用於課程。
-- 講師造型為通用 Q 版西裝講師，可在 `index.html` 中 `#cA` 的 SVG 調整髮型、眼鏡、領帶顏色。
+- 角色造型採用 `assets/characters/` 的設定圖：講師 Allan Lo（深藍西裝、黑框眼鏡、識別證）與助教阿拉蕾（雙馬尾、耳機麥克風、青綠外套配黃色帽T）。畫面左右下角以視訊框呈現胸像，依台詞表情切換（微笑、大笑、思考、驚訝、搔頭、比一、眨眼等），說話時嘴型開合、外框發光；開場封面與結尾使用全身圖。
+- 更換角色圖：替換 `assets/characters/` 的設定圖後，調整 `tools/extract_characters.py` 的裁切框（`CROPS`）與嘴巴位置，再執行 `python3 tools/extract_characters.py --preview build/chars.png` 檢查。表情對應在 `presentation/index.html` 的 `CH` 設定。
